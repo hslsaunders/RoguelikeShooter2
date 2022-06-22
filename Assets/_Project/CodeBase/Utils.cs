@@ -846,12 +846,6 @@ namespace _Project.Codebase.Misc
         {
             return source.Select((item, index) => (item, index));
         }
-        
-        public static void AddCircleHandle(ref Vector2 targetPoint, ref float _debugSize)
-        {
-            _debugSize = Handles.RadiusHandle(Quaternion.identity, targetPoint, _debugSize);
-            targetPoint = Handles.PositionHandle(targetPoint, Quaternion.identity);
-        }
 
         public static Vector3 SetX(this Vector3 v, float newX) => new Vector3(newX, v.y, v.z);
         public static Vector3 SetY(this Vector3 v, float newY) => new Vector3(v.x, newY, v.z);

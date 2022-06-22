@@ -1,5 +1,7 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace _Project.CodeBase
 {
@@ -13,25 +15,66 @@ namespace _Project.CodeBase
             CastedTarget = (T)target;
         }
 
+        protected virtual void OnSceneGUI()
+        {
+            
+        }
+        
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            
-            DebugField();
+            AddBoolField(ref _debug, "Show Debugs");
             
             if (_debug)
-            {
                 DrawInspectorDebug();
-            }
 
             if (GUI.changed)
                 SceneView.RepaintAll();
         }
+        protected virtual void DrawInspectorDebug()
+        {
+        }
+
+        public void AddCircleHandle(ref Vector2 targetPoint, ref float _debugSize)
+        {
+            _debugSize = Handles.RadiusHandle(Quaternion.identity, targetPoint, _debugSize);
+            targetPoint = Handles.PositionHandle(targetPoint, Quaternion.identity);
+        }
+
+        protected void AddObjectFieldNoFormat<K>(ref K obj, string label, params GUILayoutOption[] options) where K : Object
+        {
+            obj = (K)EditorGUILayout.ObjectField(label, obj, typeof(K), true, options);
+        }
+        
+        protected void AddObjectField<K>(ref K obj, string label) where K : Object
+        {
+            EditorGUILayout.BeginHorizontal();
+            AddObjectFieldNoFormat(ref obj, label);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        protected void AddBoolFieldNoFormat(ref bool boolValue, string label, params GUILayoutOption[] options)
+        {
+            EditorGUILayout.PrefixLabel(label);
+            boolValue = EditorGUILayout.Toggle(boolValue, options);
+        }
+
+        protected void AddBoolField(ref bool boolValue, string label, params GUILayoutOption[] options)
+        {
+            EditorGUILayout.BeginHorizontal();
+            AddBoolFieldNoFormat(ref boolValue, label, options);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        #region IntFields
+
+        protected void AddIntFieldNoFormat(ref int intValue, string label) => 
+            intValue = EditorGUILayout.IntField(label, intValue);
 
         protected void AddIntField(ref int intValue, string label)
         {
             EditorGUILayout.BeginHorizontal();
-            intValue = EditorGUILayout.IntField(label, intValue);
+            AddIntFieldNoFormat(ref intValue, label);
             EditorGUILayout.EndHorizontal();
         }
         
@@ -39,16 +82,21 @@ namespace _Project.CodeBase
         {
             EditorGUILayout.BeginHorizontal();
             toggleValue = EditorGUILayout.Toggle(toggleValue);
-                if (toggleValue)
-            intValue = EditorGUILayout.IntField(label, intValue);
+            if (toggleValue)
+                intValue = EditorGUILayout.IntField(label, intValue);
             EditorGUILayout.EndHorizontal();
         }
+
+        #endregion
         
+        #region FloatFields
+
+        protected void AddFloatFieldNoFormat(ref float floatValue, string label) =>
+            floatValue = EditorGUILayout.FloatField(label, floatValue);
         protected void AddFloatField(ref float floatValue, string label)
         {
             EditorGUILayout.BeginHorizontal();
-            
-            floatValue = EditorGUILayout.FloatField(label, floatValue);
+            AddFloatFieldNoFormat(ref floatValue, label);
             EditorGUILayout.EndHorizontal();
         }
         
@@ -61,22 +109,43 @@ namespace _Project.CodeBase
             EditorGUILayout.EndHorizontal();
         }
         
-        protected void AddBoolField(ref bool boolValue, string label)
+        #endregion
+
+        #region Sliders
+
+        #region Int Sliders
+        protected void AddIntSliderNoFormat(ref int intValue, string label, int min, int max)
         {
-            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(label);
-            boolValue = EditorGUILayout.Toggle(boolValue);
-            EditorGUILayout.EndHorizontal();
+            intValue = EditorGUILayout.IntSlider(intValue, min, max);
         }
         
         protected void AddIntSlider(ref int intValue, string label, int min, int max)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(label);
-            intValue = EditorGUILayout.IntSlider(intValue, min, max);
+            AddIntSliderNoFormat(ref intValue, label, min, max);
             EditorGUILayout.EndHorizontal();
         }
+        
+        protected void AddIntSlider(ref int intValue, string label, int min, int max, ref bool toggleValue)
+        {
+            EditorGUILayout.BeginHorizontal();
+            toggleValue = EditorGUILayout.Toggle(toggleValue);
+            if (toggleValue)
+                AddIntSliderNoFormat(ref intValue, label, min, max);
+            EditorGUILayout.EndHorizontal();
+        }
+        #endregion
+        
+        #region Float Sliders
 
+        protected void AddFloatSliderNoFormat(ref float floatValue, string label, float min, float max)
+        {
+            if (label != "") 
+                EditorGUILayout.PrefixLabel(label);
+            floatValue = EditorGUILayout.Slider(floatValue, min, max);
+        }
+        
         protected void AddFloatSlider(ref float floatValue, string label, float min, float max)
         {
             EditorGUILayout.BeginHorizontal();
@@ -94,24 +163,8 @@ namespace _Project.CodeBase
             EditorGUILayout.EndHorizontal();
         }
 
-        private void AddFloatSliderNoFormat(ref float floatValue, string label, float min, float max)
-        {
-            if (label != "") 
-                EditorGUILayout.PrefixLabel(label);
-            floatValue = EditorGUILayout.Slider(floatValue, min, max);
-        }
+        #endregion
         
-        private void DebugField()
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel("Show Debugs");
-            _debug = EditorGUILayout.Toggle(_debug);
-            EditorGUILayout.EndHorizontal();
-        }
-        
-        protected virtual void DrawInspectorDebug()
-        {
-            
-        }
+        #endregion
     }
 }

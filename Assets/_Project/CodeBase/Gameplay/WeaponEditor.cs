@@ -35,11 +35,9 @@ namespace _Project.CodeBase.Player
             }
         }
 
-        private void OnSceneGUI()
+        protected override void OnSceneGUI()
         {
-            if (!_debug) return;
-            
-            EditorGUI.BeginChangeCheck();
+            base.OnSceneGUI();
 
             Handles.matrix = Matrix4x4.TRS(CastedTarget._holdCurve.originTransform.position, Quaternion.identity, 
                 CastedTarget._holdCurve.OriginLossyScale);
@@ -101,7 +99,7 @@ namespace _Project.CodeBase.Player
         private void HandleStartOrEndHandle(ref Vector2 oneEnd, ref Vector2 otherEnd, string label)
         {
             EditorGUI.BeginChangeCheck();
-            Utils.AddCircleHandle(ref oneEnd, ref _circleSize);
+            AddCircleHandle(ref oneEnd, ref _circleSize);
             if (EditorGUI.EndChangeCheck() && _mirrorStartAndEnd)
             {
                 otherEnd = oneEnd.SetY(-oneEnd.y);

@@ -15,12 +15,15 @@ namespace _Project.CodeBase.Gameplay.Entity
         public Vector2 AimDirection { get; private set; }
         public Vector2 AimTarget
         {
-            get => (targetTransform ? (Vector2)targetTransform.position : Vector2.zero) + targetOffset;
-            set => targetOffset = value - (targetTransform ? (Vector2) targetTransform.position : Vector2.zero);
+            get => targetTransform ? (Vector2)targetTransform.TransformPoint(targetOffset) : targetOffset;
+            set => targetOffset =
+                targetTransform
+                    ? (Vector2)targetTransform.InverseTransformPoint(value)
+                    : value; //value - (targetTransform ? (Vector2) targetTransform.position : Vector2.zero);
         }
         public Vector2 targetOffset;
-        public Transform targetTransform;
-        public Vector2 velocity;
+        [HideInInspector] public Transform targetTransform;
+        [HideInInspector] public Vector2 velocity;
         [HideInInspector] public Vector2 moveInput;
         public float AimAngle { get; private set; }
         public float AimAngleRatio { get; private set; }
@@ -70,9 +73,7 @@ namespace _Project.CodeBase.Gameplay.Entity
             if (AimOrigin == null)
                 AimDirection = new Vector2(FlipMultiplier, 0f);
             else
-            {
                 AimDirection = (AimTarget - (Vector2) AimOrigin.position).normalized;
-            }
 
             _weaponController.target = AimTarget;
             _weaponController.rotateSprite180 = FacingLeft;
@@ -151,7 +152,7 @@ namespace _Project.CodeBase.Gameplay.Entity
             if (IsWalking)
                 speed *= WALK_SPEED_MULTIPLIER;
             float yVel = velocity.y;
-            Vector2 input = new Vector2(moveInput.x, 0f);
+            Vector2 input = Utils.ClampVector(new Vector2(moveInput.x, 0f), -Vector2.one, Vector2.one);
             velocity = Vector3.SmoothDamp(velocity, input * speed, ref _smoothVel, .125f);
             velocity.y = yVel;
 
