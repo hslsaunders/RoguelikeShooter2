@@ -50,11 +50,10 @@ namespace _Project.CodeBase.Gameplay
                 {
                     if (hit.collider.gameObject.TryGetComponent(out Rigidbody2D rb))
                     {
-                        rb.AddForceAtPosition(direction * 20f, hit.point);
+                        rb.AddForceAtPosition(direction * (.5f * penetrationHealth), hit.point, ForceMode2D.Impulse);
                     }
                 }
 
-                Debug.Log(" " + penetrationHealth + " - " + surfaceStrength, hit.collider.gameObject);
                 penetrationHealth -= surfaceStrength;
 
                 if (penetrationHealth <= 0f)

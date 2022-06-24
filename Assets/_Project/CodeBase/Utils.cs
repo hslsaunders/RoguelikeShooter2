@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace _Project.Codebase.Misc
+namespace _Project.CodeBase
 {
     public static class Utils
     {

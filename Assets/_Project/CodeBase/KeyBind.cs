@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace _Project.Codebase.Misc
+namespace _Project.CodeBase
 {
     public struct KeyBind
     {

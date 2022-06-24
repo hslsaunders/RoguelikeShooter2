@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace _Project.Codebase.Misc
+namespace _Project.CodeBase
 {
     [Serializable]
     public class BezierCurve

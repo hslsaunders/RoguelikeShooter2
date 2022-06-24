@@ -1,5 +1,4 @@
 ﻿using _Project.CodeBase.Gameplay.Entity;
-using _Project.Codebase.Misc;
 using UnityEngine;
 
 namespace _Project.CodeBase.Player

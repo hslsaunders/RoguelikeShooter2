@@ -1,8 +1,7 @@
-﻿using _Project.Codebase.Misc;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-namespace _Project.CodeBase.Player
+namespace _Project.CodeBase.Gameplay
 {
     [CustomEditor(typeof(Weapon))]
     [CanEditMultipleObjects]
@@ -40,8 +39,10 @@ namespace _Project.CodeBase.Player
             base.OnSceneGUI();
 
             if (!_debug) return;
-            
-            Handles.matrix = Matrix4x4.TRS(CastedTarget._holdCurve.originTransform.position, Quaternion.identity, 
+
+            Handles.matrix = Matrix4x4.TRS(CastedTarget._holdCurve.originTransform 
+                    ? CastedTarget._holdCurve.originTransform.position
+                    : CastedTarget.transform.position, Quaternion.identity, 
                 CastedTarget._holdCurve.OriginLossyScale);
             
             DrawStartAndEndHandles();
@@ -76,6 +77,13 @@ namespace _Project.CodeBase.Player
                 DrawAimAngleHandle(CastedTarget.highestAimAngle, ref _topAimRangeSliderPos);
                 DrawAimAngleHandle(-CastedTarget.lowestAimAngle, ref _bottomAimRangeSliderPos);
             }
+            
+            Handles.matrix = Matrix4x4.identity;
+            Vector2 lineDir = CastedTarget._holdCurve.originTransform ? 
+                (CastedTarget._holdCurve.originTransform.position - CastedTarget.transform.position).normalized
+                : -CastedTarget.transform.right;
+            Handles.DrawLine(CastedTarget.transform.position, 
+                (Vector2)CastedTarget.transform.position + (lineDir * CastedTarget.minDistToAimPivot));
 
             if (EditorGUI.EndChangeCheck())
                 SceneView.RepaintAll();

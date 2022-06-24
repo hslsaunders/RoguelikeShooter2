@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
-using _Project.Codebase.Misc;
 using _Project.CodeBase.Player;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace _Project.CodeBase.Gameplay.Entity
 {
@@ -29,12 +29,13 @@ namespace _Project.CodeBase.Gameplay.Entity
         [HideInInspector] public Vector2 moveInput;
         public float AimAngle { get; private set; }
         public float AimAngleRatio { get; private set; }
-        public Vector2 AimHoldLocation => Weapon ? Weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
-
-        [HideInInspector] public WeaponController weaponController;
+        public Vector2 AimHoldLocation => weapon ? weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
+        public Vector2 LocalAimHoldLocation => weapon ? weapon.GetLocalHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
+        public UnityAction OnAddWeapon;
+        public UnityAction OnFireWeapon;
         private CharacterController _characterController;
         public int FlipMultiplier => FacingLeft ? -1 : 1;
-        public Weapon Weapon => weaponController.weapon;
+        public Weapon weapon;
         [HideInInspector] public bool overrideTriggerDown;
         [HideInInspector] public bool overriddenTriggerDownValue;
         private Vector3 _smoothVel;
@@ -66,17 +67,9 @@ namespace _Project.CodeBase.Gameplay.Entity
 
         private void Start()
         {
-            
             TryGetComponent(out _characterController);
-        }
-
-        private void OnValidate()
-        {
-            if (weaponController == null)
-                TryGetComponent(out weaponController);
-
-            if (weaponController.weapon != null)
-                weaponController.weapon.hitMask = hitMask;
+            if (weapon != null)
+                AddWeapon(weapon);
         }
 
         private void Update()
@@ -88,20 +81,20 @@ namespace _Project.CodeBase.Gameplay.Entity
             else
                 AimDirection = (AimTarget - (Vector2) AimOrigin.position).normalized;
 
-            weaponController.target = AimTarget;
-            weaponController.rotateSprite180 = FacingLeft;
-        
             AimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             //AimAngle = Mathf.Clamp(AimAngle, -Weapon.lowestAimAngle, Weapon.highestAimAngle);
 
-            AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-Weapon.lowestAimAngle, Weapon.highestAimAngle));
+            if (weapon == null)
+                AimAngleRatio = .5f;
+            else
+                AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-weapon.lowestAimAngle, weapon.highestAimAngle));
 
             IsWalking = GameControls.Walk.IsHeld;
         
             _graphics.transform.localScale = _graphics.transform.localScale.SetX(FacingLeft ? -1f : 1f);
             
             if (overrideTriggerDown)
-                Weapon.SetFireTriggerState(overriddenTriggerDownValue);
+                weapon.SetFireTriggerState(overriddenTriggerDownValue);
         }
 
         private void FixedUpdate()
@@ -150,19 +143,34 @@ namespace _Project.CodeBase.Gameplay.Entity
             _wasOnCeiling = _isOnCeiling;
         }
 
+        public void AddWeapon(Weapon weapon)
+        {
+            this.weapon = weapon;
+            weapon.hitMask = hitMask;
+            OnAddWeapon.Invoke();
+            weapon.onFire.AddListener(OnFireWeapon);
+        }
+
+        public void RemoveWeapon(Weapon weapon)
+        {
+            this.weapon.hitMask = 0;
+            this.weapon = null;
+            weapon.onFire.RemoveListener(OnFireWeapon);
+        }
+
         public void TryShoot()
         {
-            if (Weapon != null)
+            if (weapon != null)
             {
-                Weapon.SetFireTriggerState(true);
+                weapon.SetFireTriggerState(true);
             }
         }
 
         public void StopShooting()
         {
-            if (Weapon != null)
+            if (weapon != null)
             {
-                Weapon.SetFireTriggerState(false);    
+                weapon.SetFireTriggerState(false);    
             }
         }
 

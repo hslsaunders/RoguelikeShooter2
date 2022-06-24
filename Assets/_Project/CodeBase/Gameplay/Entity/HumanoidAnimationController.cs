@@ -1,4 +1,5 @@
-﻿using _Project.Codebase.Misc;
+﻿using System;
+using System.Collections;
 using _Project.CodeBase.Player;
 using UnityEngine;
 
@@ -15,11 +16,17 @@ namespace _Project.CodeBase.Gameplay.Entity
         public IKTransform farHand;
         public IKTransform closeFoot;
         public IKTransform farFoot;
+        private Vector2 _lerpedCloseHandPos;
+        private Vector2 _recoilCloseHandOffset;
         private Vector2 _torsoOffset;
         private static readonly int HorizontalSpeed = Animator.StringToHash("HorizontalSpeed");
         private static readonly int AimRatio = Animator.StringToHash("AimRatio");
         private Vector2 _oldLowerTorsoPos;
-
+        private float _lerpedWeaponAngle;
+        private float _currentWeaponAngle;
+        private float _recoilAngleOffset;
+        private Weapon Weapon => _entityController.weapon;
+        
         private const float TORSO_TERRAIN_OFFSET = .25f;
         private const float TORSO_AIM_OFFSET = 0f;
         private const float TORSO_LERP_SPEED = 10f;
@@ -29,11 +36,30 @@ namespace _Project.CodeBase.Gameplay.Entity
         private const float IK_PLACEMENT_OFFSET = .075f;
         private const float RUN_ANIM_SPEED = .075f;
         private const float AIM_ANIM_SPEED = .075f;
+        private const float RECOIL_TRANSLATION_DECAY_SPEED = 7f;
+        private const float RECOIL_ROTATION_DECAY_SPEED = 15f;
+        private const float WEAPON_ANGLE_LERP_SPEED = 720f;
+        private const float MAX_RECOIL_OFFSET_DIST = .125f;
+        
+        private float _lastAimAngle;
+        private float _totalAngleChange;
+
+        private void Start()
+        {
+            //StartCoroutine(TrackAngleChange());
+        }
+        
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            
+            _entityController.OnAddWeapon += OnEquipWeapon;
+        }
 
         protected override void LateUpdate()
         {
             base.LateUpdate();
-            
+
             //float aimRatio = 0f;//_baseEntityController.AimAngleRatio;//_entityController.AimAngleRatio.Remap(0f, 1f, -1f, 1f);
 
             float targetTorsoOffsetY = 0f;
@@ -61,25 +87,78 @@ namespace _Project.CodeBase.Gameplay.Entity
             */
 
 
-            if (Application.isPlaying)
+            SyncIKToAnimation(head, null);
+            SyncIKToAnimation(closeFoot, _hipTransform);
+            SyncIKToAnimation(farFoot, _hipTransform);
+            
+            if (Application.isPlaying && Weapon != null)
             {
-                Vector2 aimHoldLocation = _entityController.AimHoldLocation;
+                Vector2 localAimHoldLocation = _shoulderTransform.InverseTransformPoint(_entityController.AimHoldLocation);
 
-                closeHand.IKTarget.position = Vector2.Lerp(closeHand.IKTarget.position, aimHoldLocation, 
+                //_lerpedLocalCloseHandPos = Vector2.Lerp(_lerpedLocalCloseHandPos, localAimHoldLocation, 
+                //    _handLerpSpeed * Time.deltaTime);
+                //closeHand.IKTarget.position = transform.TransformPoint(_lerpedLocalCloseHandPos);
+
+                _recoilCloseHandOffset = Vector2.Lerp(_recoilCloseHandOffset, Vector2.zero,
+                    RECOIL_TRANSLATION_DECAY_SPEED * Time.deltaTime);
+
+                _recoilAngleOffset = Mathf.LerpAngle(_recoilAngleOffset, 0f, 
+                    RECOIL_ROTATION_DECAY_SPEED * Time.deltaTime);
+                
+                _lerpedCloseHandPos = Vector2.Lerp(_lerpedCloseHandPos, localAimHoldLocation,
                     _handLerpSpeed * Time.deltaTime);
+
+                //_recoilCloseHandOffset = Vector2.ClampMagnitude(_recoilCloseHandOffset, MAX_RECOIL_OFFSET_DIST);
+                
+                Vector2 finalLocalIKPos = _lerpedCloseHandPos + _recoilCloseHandOffset;
+                //finalLocalIKPos =
+                //    Utils.ClampVectorOutsideRadius(finalLocalIKPos, Vector2.zero, Weapon.minDistToAimPivot);
+                
+                closeHand.IKTarget.position = _shoulderTransform.TransformPoint(finalLocalIKPos);
+                
+                //closeHand.IKTarget.position = Utils.WorldMousePos;
+                //closeHand.IKTarget.position = Vector2.Lerp(closeHand.IKTarget.position,
+                 //   _entityController.AimHoldLocation, _handLerpSpeed * Time.deltaTime);
                 Vector2 dirToHand = closeHand.IKTarget.position - _shoulderTransform.position;
                 closeHand.IKTarget.right = Vector2.Perpendicular(dirToHand);
                 
                 //Vector2 dirToTarget = (_playerController.AimTarget - aimHoldLocation).normalized;
-                farHand.IKTarget.position = _entityController.Weapon.secondaryPivot.position;
-                farHand.IKTarget.rotation = _entityController.Weapon.secondaryPivot.rotation;
+                farHand.IKTarget.position = Weapon.secondaryPivot.position;
+                farHand.IKTarget.rotation = Weapon.secondaryPivot.rotation;
+
+                float desiredWeaponAngle = Utils.DirectionToAngle(
+                    (_entityController.AimTarget - (Vector2) Weapon.transform.position)
+                    .normalized
+                    * _entityController.FlipMultiplier) * _entityController.FlipMultiplier;
+
+
+                //_lerpedWeaponAngle = Mathf.LerpAngle(_lerpedWeaponAngle, desiredWeaponAngle,
+                //    WEAPON_ANGLE_LERP_SPEED * Time.deltaTime);
+                _lerpedWeaponAngle = Mathf.MoveTowardsAngle(_lerpedWeaponAngle, desiredWeaponAngle,
+                    WEAPON_ANGLE_LERP_SPEED * Time.deltaTime * (1f / Weapon.weight));
+                 //_lerpedWeaponAngle =
+                 //    Mathf.SmoothDampAngle(_lerpedWeaponAngle, desiredWeaponAngle, 
+                 //        ref _currentWeaponAngle, -Mathf.DeltaAngle(_lerpedWeaponAngle, desiredWeaponAngle) / WEAPON_ANGLE_LERP_SPEED);
+                
+                //Debug.Log(desiredWeaponAngle + " " + _lerpedWeaponAngle);
+
+                float finalAngle = _lerpedWeaponAngle + _recoilAngleOffset;
+                
+                //Weapon.transform.right = Utils.AngleToDirection(finalAngle * _entityController.FlipMultiplier);
             }
-            
-            SyncIKToAnimation(head, null);
-            SyncIKToAnimation(closeFoot, _hipTransform);
-            SyncIKToAnimation(farFoot, _hipTransform);
         }
 
+        private void OnEquipWeapon()
+        {
+            _entityController.OnFireWeapon += OnFireWeapon;
+        }
+        private void OnFireWeapon()
+        {
+            Vector2 localWeaponDirection = _shoulderTransform.InverseTransformDirection(Weapon.transform.right).normalized;
+            _recoilCloseHandOffset -= localWeaponDirection * .025f *_entityController.FlipMultiplier;
+            _recoilAngleOffset += 10f;
+        }
+        
         protected override void ManageAnimatorValues()
         {
             float velocityRatio = _entityController.velocity.x / EntityController.MOVE_SPEED;
@@ -116,5 +195,27 @@ namespace _Project.CodeBase.Gameplay.Entity
                 }
             }
         }
+        
+        
+        private IEnumerator TrackAngleChange()
+        {
+            float time = 0;
+            _lastAimAngle = _lerpedWeaponAngle;
+            while (true)
+            {
+                yield return null;
+
+                time += Time.deltaTime;
+                _totalAngleChange += Mathf.DeltaAngle(_lastAimAngle, _lerpedWeaponAngle);
+                if (time > 1f)
+                {
+                    time -= 1f;
+                    Debug.Log(_totalAngleChange);
+                    _totalAngleChange = 0f;
+                }
+                _lastAimAngle = _lerpedWeaponAngle;
+            }
+        }
+
     }
 }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace _Project.CodeBase.Player
+namespace _Project.CodeBase.Gameplay.Entity
 {
     [System.Serializable]
     public class IKTransform
