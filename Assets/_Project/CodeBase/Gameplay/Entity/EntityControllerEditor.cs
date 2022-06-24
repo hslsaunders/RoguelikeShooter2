@@ -12,6 +12,7 @@ namespace _Project.CodeBase.Gameplay.Entity
         private Transform _targetTransform;
         private Vector2 _worldSpaceTargetPos;
         private bool _worldPositionStays;
+        protected override bool MakeInspectorDebugToggleable => false;
 
         protected override void OnSceneGUI()
         {
@@ -31,8 +32,11 @@ namespace _Project.CodeBase.Gameplay.Entity
         protected override void DrawInspectorDebug()
         {
             base.DrawInspectorDebug();
-
+            
+            //AddObjectField(ref CastedTarget.weaponController.weapon, "Weapon");
             AddFloatSlider(ref CastedTarget.moveInput.x, "Override Input", -1f, 1f, ref _overrideMoveInput);
+            AddBoolField(ref CastedTarget.overriddenTriggerDownValue, ref CastedTarget.overrideTriggerDown,
+                "Override Trigger Down Value");
 
             EditorGUILayout.BeginHorizontal();
             AddObjectFieldNoFormat(ref _targetTransform, "New\\Current Target Transform", 

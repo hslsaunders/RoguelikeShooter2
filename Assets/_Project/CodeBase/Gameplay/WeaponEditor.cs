@@ -39,6 +39,8 @@ namespace _Project.CodeBase.Player
         {
             base.OnSceneGUI();
 
+            if (!_debug) return;
+            
             Handles.matrix = Matrix4x4.TRS(CastedTarget._holdCurve.originTransform.position, Quaternion.identity, 
                 CastedTarget._holdCurve.OriginLossyScale);
             

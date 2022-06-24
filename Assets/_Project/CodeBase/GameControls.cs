@@ -13,6 +13,9 @@ namespace _Project.Codebase.Misc
         public static readonly KeyBind Jump = new KeyBind(KeyCode.Space);
         public static readonly KeyBind Walk = new KeyBind(KeyCode.LeftControl);
         
+        //    Combat
+        public static readonly KeyBind Shoot = new KeyBind(KeyCode.Mouse0);
+        
 
         public static readonly KeyBind InteractUI = new KeyBind(KeyCode.Mouse0);
         public static readonly KeyBind CancelInteractUI = new KeyBind(KeyCode.Mouse1);

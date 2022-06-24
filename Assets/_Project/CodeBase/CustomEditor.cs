@@ -9,6 +9,7 @@ namespace _Project.CodeBase
     {
         protected bool _debug = true;
         public T CastedTarget { get; private set; }
+        protected virtual bool MakeInspectorDebugToggleable => true;
 
         private void OnEnable()
         {
@@ -23,9 +24,10 @@ namespace _Project.CodeBase
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            AddBoolField(ref _debug, "Show Debugs");
+            if (MakeInspectorDebugToggleable)
+                AddBoolField(ref _debug, "Show Debugs");
             
-            if (_debug)
+            if (!MakeInspectorDebugToggleable || _debug)
                 DrawInspectorDebug();
 
             if (GUI.changed)
@@ -66,6 +68,16 @@ namespace _Project.CodeBase
             EditorGUILayout.EndHorizontal();
         }
 
+        protected void AddBoolField(ref bool boolValue, ref bool toggleValue, string label)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(label);
+            toggleValue = EditorGUILayout.Toggle(toggleValue);
+            if (toggleValue)
+                boolValue = EditorGUILayout.Toggle(boolValue);
+            EditorGUILayout.EndHorizontal();
+        }
+
         #region IntFields
 
         protected void AddIntFieldNoFormat(ref int intValue, string label) => 
@@ -81,6 +93,7 @@ namespace _Project.CodeBase
         protected void AddIntField(ref int intValue, string label, ref bool toggleValue)
         {
             EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(label);
             toggleValue = EditorGUILayout.Toggle(toggleValue);
             if (toggleValue)
                 intValue = EditorGUILayout.IntField(label, intValue);
@@ -103,9 +116,10 @@ namespace _Project.CodeBase
         protected void AddFloatField(ref float floatValue, string label, ref bool toggleValue)
         {
             EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel(label);
             toggleValue = EditorGUILayout.Toggle(toggleValue);
             if (toggleValue)
-                floatValue = EditorGUILayout.FloatField(label, floatValue);
+                floatValue = EditorGUILayout.FloatField(floatValue);
             EditorGUILayout.EndHorizontal();
         }
         

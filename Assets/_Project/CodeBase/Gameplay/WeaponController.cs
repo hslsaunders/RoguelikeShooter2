@@ -20,7 +20,6 @@ namespace _Project.CodeBase.Player
             Vector2 dir = (target - (Vector2)_primaryHoldTransform.position).normalized;
             weapon.transform.right = dir * (rotateSprite180 ? -1f : 1f);
         }
-
         private void OnDrawGizmos()
         {
             //Gizmos.color = Color.red;

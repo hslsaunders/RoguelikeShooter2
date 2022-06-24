@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using _Project.Codebase.Misc;
 using _Project.CodeBase.Player;
@@ -9,6 +10,7 @@ namespace _Project.CodeBase.Gameplay.Entity
     {
         [SerializeField] private Transform _graphics;
         [field: SerializeField] public Transform AimOrigin { get; private set; }
+        public LayerMask hitMask;
         public bool IsGrounded { get; private set; }
         public bool FacingLeft { get; private set; }
         public bool IsWalking { get; private set; }
@@ -19,7 +21,7 @@ namespace _Project.CodeBase.Gameplay.Entity
             set => targetOffset =
                 targetTransform
                     ? (Vector2)targetTransform.InverseTransformPoint(value)
-                    : value; //value - (targetTransform ? (Vector2) targetTransform.position : Vector2.zero);
+                    : value; 
         }
         public Vector2 targetOffset;
         [HideInInspector] public Transform targetTransform;
@@ -29,10 +31,12 @@ namespace _Project.CodeBase.Gameplay.Entity
         public float AimAngleRatio { get; private set; }
         public Vector2 AimHoldLocation => Weapon ? Weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
 
+        [HideInInspector] public WeaponController weaponController;
         private CharacterController _characterController;
-        private WeaponController _weaponController;
         public int FlipMultiplier => FacingLeft ? -1 : 1;
-        public Weapon Weapon => _weaponController.weapon;
+        public Weapon Weapon => weaponController.weapon;
+        [HideInInspector] public bool overrideTriggerDown;
+        [HideInInspector] public bool overriddenTriggerDownValue;
         private Vector3 _smoothVel;
         private bool _wasGrounded;
         private bool _wasOnCeiling;
@@ -62,8 +66,17 @@ namespace _Project.CodeBase.Gameplay.Entity
 
         private void Start()
         {
+            
             TryGetComponent(out _characterController);
-            TryGetComponent(out _weaponController);
+        }
+
+        private void OnValidate()
+        {
+            if (weaponController == null)
+                TryGetComponent(out weaponController);
+
+            if (weaponController.weapon != null)
+                weaponController.weapon.hitMask = hitMask;
         }
 
         private void Update()
@@ -75,23 +88,20 @@ namespace _Project.CodeBase.Gameplay.Entity
             else
                 AimDirection = (AimTarget - (Vector2) AimOrigin.position).normalized;
 
-            _weaponController.target = AimTarget;
-            _weaponController.rotateSprite180 = FacingLeft;
+            weaponController.target = AimTarget;
+            weaponController.rotateSprite180 = FacingLeft;
         
             AimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             //AimAngle = Mathf.Clamp(AimAngle, -Weapon.lowestAimAngle, Weapon.highestAimAngle);
 
             AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-Weapon.lowestAimAngle, Weapon.highestAimAngle));
 
-            if (GameControls.DebugResetPosition.IsPressed)
-            {
-                transform.position = Vector3.zero;
-                velocity = Vector3.zero;
-            }
-
             IsWalking = GameControls.Walk.IsHeld;
         
             _graphics.transform.localScale = _graphics.transform.localScale.SetX(FacingLeft ? -1f : 1f);
+            
+            if (overrideTriggerDown)
+                Weapon.SetFireTriggerState(overriddenTriggerDownValue);
         }
 
         private void FixedUpdate()
@@ -109,6 +119,7 @@ namespace _Project.CodeBase.Gameplay.Entity
             // clamp velocity
 
             _characterController.Move(velocity * Time.fixedDeltaTime);
+            _characterController.transform.position = _characterController.transform.position.SetZ(0f);
         }
     
         private void ManageFalling()
@@ -137,6 +148,22 @@ namespace _Project.CodeBase.Gameplay.Entity
             _wasGrounded = IsGrounded;
             
             _wasOnCeiling = _isOnCeiling;
+        }
+
+        public void TryShoot()
+        {
+            if (Weapon != null)
+            {
+                Weapon.SetFireTriggerState(true);
+            }
+        }
+
+        public void StopShooting()
+        {
+            if (Weapon != null)
+            {
+                Weapon.SetFireTriggerState(false);    
+            }
         }
 
         public void Jump()

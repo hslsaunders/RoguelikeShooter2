@@ -5,10 +5,8 @@ using UnityEngine;
 namespace _Project.CodeBase.Gameplay.Entity
 {
     [ExecuteAlways]
-    public class HumanoidAnimationController : MonoBehaviour
+    public class HumanoidAnimationController : EntityAnimationController
     {
-        [SerializeField] private bool _disableAnimator;
-        [SerializeField] private bool _disableRaycastIKCorrection;
         [SerializeField] private float _handLerpSpeed;
         [SerializeField] private Transform _hipTransform;
         [SerializeField] private Transform _shoulderTransform;
@@ -18,10 +16,8 @@ namespace _Project.CodeBase.Gameplay.Entity
         public IKTransform closeFoot;
         public IKTransform farFoot;
         private Vector2 _torsoOffset;
-        private EntityController _entityController;
         private static readonly int HorizontalSpeed = Animator.StringToHash("HorizontalSpeed");
         private static readonly int AimRatio = Animator.StringToHash("AimRatio");
-        private Animator _animator;
         private Vector2 _oldLowerTorsoPos;
 
         private const float TORSO_TERRAIN_OFFSET = .25f;
@@ -34,16 +30,10 @@ namespace _Project.CodeBase.Gameplay.Entity
         private const float RUN_ANIM_SPEED = .075f;
         private const float AIM_ANIM_SPEED = .075f;
 
-        private void OnValidate()
+        protected override void LateUpdate()
         {
-            TryGetComponent(out _animator);
-            TryGetComponent(out _entityController);
-        }
-
-        private void LateUpdate()
-        {
-            _animator.enabled = !_disableAnimator;
-
+            base.LateUpdate();
+            
             //float aimRatio = 0f;//_baseEntityController.AimAngleRatio;//_entityController.AimAngleRatio.Remap(0f, 1f, -1f, 1f);
 
             float targetTorsoOffsetY = 0f;
@@ -59,7 +49,7 @@ namespace _Project.CodeBase.Gameplay.Entity
             }
             _torsoOffset.y = Mathf.Lerp(_torsoOffset.y, targetTorsoOffsetY, TORSO_LERP_SPEED * Time.deltaTime);
 
-            ManageAnimatorValues();
+            
             /*
             if (torso.IKTarget != null)
             {
@@ -90,18 +80,15 @@ namespace _Project.CodeBase.Gameplay.Entity
             SyncIKToAnimation(farFoot, _hipTransform);
         }
 
-        private void ManageAnimatorValues()
+        protected override void ManageAnimatorValues()
         {
-            if (_animator.enabled && Application.isPlaying)
-            {
-                float velocityRatio = _entityController.velocity.x / EntityController.MOVE_SPEED;
-                velocityRatio *= _entityController.FlipMultiplier;
-                
-                _animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,
-                    Time.deltaTime);
+            float velocityRatio = _entityController.velocity.x / EntityController.MOVE_SPEED;
+            velocityRatio *= _entityController.FlipMultiplier;
 
-                _animator.SetFloat(AimRatio, _entityController.AimAngleRatio, AIM_ANIM_SPEED, Time.deltaTime);
-            }
+            _animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,
+                Time.deltaTime);
+
+            _animator.SetFloat(AimRatio, _entityController.AimAngleRatio, AIM_ANIM_SPEED, Time.deltaTime);
         }
 
         private void SyncIKToAnimation(IKTransform IKTrans, Transform raycastSource)

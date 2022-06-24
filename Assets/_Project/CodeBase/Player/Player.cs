@@ -18,11 +18,22 @@ namespace _Project.CodeBase.Player
         {
             if (controller == null) return;
             
+            if (GameControls.DebugResetPosition.IsPressed)
+            {
+                controller.transform.position = Vector3.zero;
+                controller.velocity = Vector3.zero;
+            }
+            
             controller.AimTarget = Utils.WorldMousePos;
             controller.moveInput = GameControls.DirectionalInput;
             
             if (GameControls.Jump.IsPressed)
                 controller.Jump();
+
+            if (GameControls.Shoot.IsHeld)
+                controller.TryShoot();
+            else
+                controller.StopShooting();
         }
     }
 }

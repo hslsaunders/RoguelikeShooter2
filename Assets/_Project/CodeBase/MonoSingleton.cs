@@ -10,5 +10,11 @@ namespace _Project.Codebase.Misc
         {
             Singleton = (T)this;
         }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void InitializeOnLoad()
+        {
+            Singleton = null;
+        }
     }
 }
