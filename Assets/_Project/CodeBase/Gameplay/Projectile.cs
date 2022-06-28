@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Project.CodeBase.Gameplay
 {
@@ -28,7 +27,6 @@ namespace _Project.CodeBase.Gameplay
             PhysicsUpdate(transform.position, moveDirection, distance);
         }
 
-        
         private void ManageCollision(Vector2 start, Vector2 direction, float distance, 
             out Vector2 newStart, out Vector2 newDirection, out float newDistance)
         {

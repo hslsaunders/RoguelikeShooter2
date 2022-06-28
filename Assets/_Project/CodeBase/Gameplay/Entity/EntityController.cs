@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using _Project.CodeBase.Player;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -22,12 +20,14 @@ namespace _Project.CodeBase.Gameplay.Entity
                 targetTransform
                     ? (Vector2)targetTransform.InverseTransformPoint(value)
                     : value; 
-        }
+        } 
         public Vector2 targetOffset;
         [HideInInspector] public Transform targetTransform;
         [HideInInspector] public Vector2 velocity;
         [HideInInspector] public Vector2 moveInput;
         public float AimAngle { get; private set; }
+        private float _localTargetAimAngle;
+        private float _localLerpedAimAngle;
         public float AimAngleRatio { get; private set; }
         public Vector2 AimHoldLocation => weapon ? weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
         public Vector2 LocalAimHoldLocation => weapon ? weapon.GetLocalHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
@@ -74,21 +74,28 @@ namespace _Project.CodeBase.Gameplay.Entity
 
         private void Update()
         {
-            FacingLeft = AimTarget.x < transform.position.x;
-        
+            float localAimX = AimTarget.x - transform.position.x;
+            float flipCutoff = .075f;
+            if (!FacingLeft && localAimX < -flipCutoff)
+                FacingLeft = true;
+            else if (FacingLeft && localAimX > flipCutoff)
+                FacingLeft = false;
+
             if (AimOrigin == null)
                 AimDirection = new Vector2(FlipMultiplier, 0f);
             else
                 AimDirection = (AimTarget - (Vector2) AimOrigin.position).normalized;
 
-            AimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
-            //AimAngle = Mathf.Clamp(AimAngle, -Weapon.lowestAimAngle, Weapon.highestAimAngle);
+            _localTargetAimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
+            _localLerpedAimAngle = Mathf.Lerp(_localLerpedAimAngle, _localTargetAimAngle, 10f * Time.deltaTime); //Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
+            AimAngle = _localLerpedAimAngle;
+            AimAngle = Mathf.Clamp(AimAngle, -weapon.lowestAimAngle, weapon.highestAimAngle);
 
             if (weapon == null)
                 AimAngleRatio = .5f;
             else
                 AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-weapon.lowestAimAngle, weapon.highestAimAngle));
-
+            
             IsWalking = GameControls.Walk.IsHeld;
         
             _graphics.transform.localScale = _graphics.transform.localScale.SetX(FacingLeft ? -1f : 1f);
@@ -172,6 +179,11 @@ namespace _Project.CodeBase.Gameplay.Entity
             {
                 weapon.SetFireTriggerState(false);    
             }
+        }
+
+        public void TakeDamage(float damage, GameObject hitObject, Vector2 location)
+        {
+            
         }
 
         public void Jump()

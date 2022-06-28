@@ -16,12 +16,19 @@ namespace _Project.CodeBase.Gameplay.Entity
             TryGetComponent(out _entityController);
         }
 
+
+        protected virtual void Update()
+        {
+            if (!_disableAnimator && Application.isPlaying)
+            {
+                ManageAnimatorValues();
+            }
+
+            _animator.enabled = false;
+        }
+
         protected virtual void LateUpdate()
         {
-            _animator.enabled = !_disableAnimator;
-            
-            if (_animator.enabled && Application.isPlaying)
-                ManageAnimatorValues();
         }
 
         protected virtual void ManageAnimatorValues()

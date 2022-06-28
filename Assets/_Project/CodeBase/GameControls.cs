@@ -15,6 +15,7 @@ namespace _Project.CodeBase
         
         //    Combat
         public static readonly KeyBind Shoot = new KeyBind(KeyCode.Mouse0);
+        public static readonly KeyBind ToggleControlAim = new KeyBind(KeyCode.Escape);
         
 
         public static readonly KeyBind InteractUI = new KeyBind(KeyCode.Mouse0);

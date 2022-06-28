@@ -524,6 +524,9 @@ namespace _Project.CodeBase
             return new Vector2(Mathf.Clamp(vector.x, min.x, max.x), Mathf.Clamp(vector.y, min.y, max.y));
         }
 
+        public static Vector2 RotateDirectionByAngle(Vector2 dir, float angle) => 
+            AngleToDirection(DirectionToAngle(dir) + angle);
+
         public static Vector2 AngleToDirection(float angle)
         {
             return new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
@@ -849,7 +852,6 @@ namespace _Project.CodeBase
         public static Vector3 SetX(this Vector3 v, float newX) => new Vector3(newX, v.y, v.z);
         public static Vector3 SetY(this Vector3 v, float newY) => new Vector3(v.x, newY, v.z);
         public static Vector3 SetZ(this Vector3 v, float newZ) => new Vector3(v.x, v.y, newZ);
-
         public static Vector3Int ToInt(this Vector3 v) => new Vector3Int((int)v.x, (int)v.y, (int)v.z);
         public static Vector2Int ToInt(this Vector2 v) => new Vector2Int((int)v.x, (int)v.y);
         public static Vector2 SetX(this Vector2 v, float newX) => new Vector2(newX, v.y);

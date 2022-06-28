@@ -1,5 +1,7 @@
 ﻿using UnityEditor;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Rendering.VirtualTexturing;
 
 namespace _Project.CodeBase.Gameplay
 {
@@ -12,15 +14,15 @@ namespace _Project.CodeBase.Gameplay
         
         private bool _mirrorStartAndEnd;
         private float _circleSize = DEFAULT_CIRCLE_SIZE;
-        private float _lineSize = 1f;
         private bool _displayBezierSample;
         private float _bezierSample;
         private int _numSteps = 20;
-        private Vector2 _topAimRangeSliderPos;
-        private Vector2 _bottomAimRangeSliderPos;
+        private float _aimRangeSliderDist = DEFAULT_LINE_SIZE;
+        private float _spreadSliderDist = DEFAULT_LINE_SIZE;
 
         private const float AIM_ANGLE_SLIDER_LENGTH = .15f;
         private const float DEFAULT_CIRCLE_SIZE = .05f;
+        private const float DEFAULT_LINE_SIZE = 1f;
         private void UpdateBezier()
         {
             if (_bezierStartTransform != null)
@@ -40,9 +42,10 @@ namespace _Project.CodeBase.Gameplay
 
             if (!_debug) return;
 
-            Handles.matrix = Matrix4x4.TRS(CastedTarget._holdCurve.originTransform 
-                    ? CastedTarget._holdCurve.originTransform.position
-                    : CastedTarget.transform.position, Quaternion.identity, 
+            Transform originTransform = CastedTarget._holdCurve.originTransform
+                ? CastedTarget._holdCurve.originTransform
+                : CastedTarget.transform;
+            Handles.matrix = Matrix4x4.TRS(originTransform.position, Quaternion.identity, 
                 CastedTarget._holdCurve.OriginLossyScale);
             
             DrawStartAndEndHandles();
@@ -72,38 +75,52 @@ namespace _Project.CodeBase.Gameplay
                 lastPoint = samplePoint;
             }
 
-            if (CastedTarget._holdCurve.originTransform != null)
+            DrawAngleHandle(Vector2.zero, CastedTarget.highestAimAngle, ref _aimRangeSliderDist);
+            DrawAngleHandle(Vector2.zero, -CastedTarget.lowestAimAngle, ref _aimRangeSliderDist);
+
+            if (CastedTarget._shootTransform != null)
             {
-                DrawAimAngleHandle(CastedTarget.highestAimAngle, ref _topAimRangeSliderPos);
-                DrawAimAngleHandle(-CastedTarget.lowestAimAngle, ref _bottomAimRangeSliderPos);
+                Handles.matrix = Matrix4x4.TRS(CastedTarget._shootTransform.position, 
+                    CastedTarget._shootTransform.rotation * Quaternion.Euler(0f, 0f, -90f), 
+                    Vector3.one);
+
+                DrawAngleHandle(Vector2.zero, CastedTarget.maxSpread,
+                    ref _spreadSliderDist);
+                DrawAngleHandle(Vector2.zero, -CastedTarget.maxSpread,
+                    ref _spreadSliderDist);
+                Handles.color = Color.yellow;
+                DrawAngleHandle(Vector2.zero, CastedTarget.Spread, ref _spreadSliderDist);
+                DrawAngleHandle(Vector2.zero, -CastedTarget.Spread, ref _spreadSliderDist);
             }
-            
+
+            Handles.color = Color.green;
+            /*
             Handles.matrix = Matrix4x4.identity;
             Vector2 lineDir = CastedTarget._holdCurve.originTransform ? 
                 (CastedTarget._holdCurve.originTransform.position - CastedTarget.transform.position).normalized
                 : -CastedTarget.transform.right;
             Handles.DrawLine(CastedTarget.transform.position, 
                 (Vector2)CastedTarget.transform.position + (lineDir * CastedTarget.minDistToAimPivot));
+                */
 
             if (EditorGUI.EndChangeCheck())
                 SceneView.RepaintAll();
         }
 
-        private void DrawAimAngleHandle(float angle, ref Vector2 sliderPos)
+        private void DrawAngleHandle(Vector2 source, float angle, ref float sliderDist)
         {
-            Vector2 lineTip = Utils.AngleToDirection(angle) * _lineSize;
+            Vector2 lineTip = source + Utils.AngleToDirection(angle) * sliderDist;
 
-            sliderPos = lineTip;//Utils.ClampVector(lineTip, Vector2.zero, sliderClamp);
-            
             EditorGUI.BeginChangeCheck();
-            
-            float sliderDist = Handles.Slider(sliderPos,
-                lineTip, AIM_ANGLE_SLIDER_LENGTH, Handles.ArrowHandleCap, 0f).magnitude;
+            Vector2 handlePos = Handles.Slider(lineTip,
+                lineTip, AIM_ANGLE_SLIDER_LENGTH, Handles.ArrowHandleCap, 0f);
 
             if (EditorGUI.EndChangeCheck())
-                _lineSize = sliderDist;
+                sliderDist = handlePos.magnitude;
+
+            lineTip = source + Utils.AngleToDirection(angle) * sliderDist;
             
-            Handles.DrawLine(Vector2.zero, lineTip);
+            Handles.DrawLine(source, lineTip);
         }
 
         private void HandleStartOrEndHandle(ref Vector2 oneEnd, ref Vector2 otherEnd, string label)
@@ -132,7 +149,6 @@ namespace _Project.CodeBase.Gameplay
             
             AddBoolField(ref _mirrorStartAndEnd, "Mirror Start And End");
             AddFloatField(ref _circleSize, "Circle Size");
-            AddFloatField(ref _lineSize, "Line Size");
             AddIntSlider(ref _numSteps, "Curve Vertices", CastedTarget._holdCurve.NumControlPoints + 1, 100);
             AddFloatSlider(ref _bezierSample, "Bezier Sample Point", 0f, 1f, ref _displayBezierSample);
         }

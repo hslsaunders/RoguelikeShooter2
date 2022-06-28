@@ -6,7 +6,7 @@ namespace _Project.CodeBase.Player
     public class Player : MonoSingleton<Player>
     {
         public EntityController controller;
-
+        private bool _controllingAim = true;
         private void Start()
         {
             if (controller == null)
@@ -22,10 +22,18 @@ namespace _Project.CodeBase.Player
                 controller.transform.position = Vector3.zero;
                 controller.velocity = Vector3.zero;
             }
-            
-            controller.AimTarget = Utils.WorldMousePos;
+
+            if (GameControls.ToggleControlAim.IsPressed)
+            {
+                _controllingAim = !_controllingAim;
+                if (!_controllingAim)
+                    Debug.Break();
+            }
+
+            if (_controllingAim)
+                controller.AimTarget = Utils.WorldMousePos;
             controller.moveInput = GameControls.DirectionalInput;
-            
+
             if (GameControls.Jump.IsPressed)
                 controller.Jump();
 
