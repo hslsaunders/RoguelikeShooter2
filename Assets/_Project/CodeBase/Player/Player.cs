@@ -1,26 +1,25 @@
-﻿using _Project.CodeBase.Gameplay.Entity;
+﻿using _Project.CodeBase.Gameplay.EntityClasses;
 using UnityEngine;
 
 namespace _Project.CodeBase.Player
 {
     public class Player : MonoSingleton<Player>
     {
-        public EntityController controller;
+        public Entity entity;
         private bool _controllingAim = true;
         private void Start()
         {
-            if (controller == null)
-                Debug.LogWarning("Player's Entity Controller is null");
+            if (entity == null)
+                Debug.LogWarning("Player's Entity is null");
         }
 
         private void Update()
         {
-            if (controller == null) return;
+            if (entity == null) return;
             
             if (GameControls.DebugResetPosition.IsPressed)
             {
-                controller.transform.position = Vector3.zero;
-                controller.velocity = Vector3.zero;
+                entity.transform.position = Vector3.zero;
             }
 
             if (GameControls.ToggleControlAim.IsPressed)
@@ -31,16 +30,16 @@ namespace _Project.CodeBase.Player
             }
 
             if (_controllingAim)
-                controller.AimTarget = Utils.WorldMousePos;
-            controller.moveInput = GameControls.DirectionalInput;
+                entity.AimTarget = Utils.WorldMousePos;
+            entity.moveInput = GameControls.DirectionalInput;
 
             if (GameControls.Jump.IsPressed)
-                controller.Jump();
+                entity.Controller.Jump();
 
             if (GameControls.Shoot.IsHeld)
-                controller.TryShoot();
+                entity.TryShoot();
             else
-                controller.StopShooting();
+                entity.StopShooting();
         }
     }
 }

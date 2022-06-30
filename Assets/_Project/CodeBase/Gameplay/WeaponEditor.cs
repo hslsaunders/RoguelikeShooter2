@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering.VirtualTexturing;
@@ -104,7 +105,12 @@ namespace _Project.CodeBase.Gameplay
                 */
 
             if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(CastedTarget);
+                if (!Application.isPlaying)
+                    EditorSceneManager.MarkSceneDirty(CastedTarget.gameObject.scene);
                 SceneView.RepaintAll();
+            }
         }
 
         private void DrawAngleHandle(Vector2 source, float angle, ref float sliderDist)

@@ -1,9 +1,8 @@
 ﻿using System.Collections;
-using UnityEditor.Timeline;
 using UnityEngine;
 using UnityEngine.U2D.IK;
 
-namespace _Project.CodeBase.Gameplay.Entity
+namespace _Project.CodeBase.Gameplay.EntityClasses
 {
     [ExecuteAlways]
     public class HumanoidAnimationController : EntityAnimationController
@@ -29,7 +28,7 @@ namespace _Project.CodeBase.Gameplay.Entity
         private float _currentWeaponAngle;
         private float _recoilAngleOffset;
         private float _recoilAngleOffsetTarget;
-        private Weapon Weapon => _entityController.weapon;
+        private Weapon Weapon => entity.weapon;
         private Transform firePivotTransform;
         
         private const float TORSO_TERRAIN_OFFSET = .25f;
@@ -62,7 +61,7 @@ namespace _Project.CodeBase.Gameplay.Entity
         {
             base.OnValidate();
             
-            _entityController.OnAddWeapon += OnEquipWeapon;
+            entity.OnAddWeapon += OnEquipWeapon;
 
             if (_IKManager2D == null)
                 _IKManager2D = GetComponent<IKManager2D>();
@@ -106,7 +105,7 @@ namespace _Project.CodeBase.Gameplay.Entity
             {
                 Vector2 localAimHoldLocation
                     = //firePivotTransform.InverseTransformPoint(_entityController.AimHoldLocation);
-                    _entityController.LocalAimHoldLocation;
+                    entity.LocalAimHoldLocation;
                 /*
                 _recoilCloseHandOffsetTarget -= _recoilCloseHandOffsetTarget
                                                 * (RECOIL_TRANSLATION_DECAY_SPEED *
@@ -131,25 +130,25 @@ namespace _Project.CodeBase.Gameplay.Entity
                 Vector2 finalLocalIKPos = _lerpedCloseHandPos + _recoilCloseHandOffset;
 
                 closeHand.IKTarget.position = //finalLocalIKPos + (Vector2)_closeArmPivot.position;
-                    (finalLocalIKPos * new Vector2(_entityController.FlipMultiplier, 1f)) + (Vector2) firePivotTransform.position;//firePivotTransform.TransformPoint(finalLocalIKPos);
+                    (finalLocalIKPos * entity.HorizontalFlipMultiplier) + (Vector2) firePivotTransform.position;//firePivotTransform.TransformPoint(finalLocalIKPos);
 
                 float aimTargetMinDist = 1f;
                 //Vector2 preClampTarget = _entityController.AimDirection
-                Vector2 aimTarget = Utils.ClampVectorOutsideRadius(_entityController.AimTarget, 
+                Vector2 aimTarget = Utils.ClampVectorOutsideRadius(entity.AimTarget, 
                     firePivotTransform.position, aimTargetMinDist);
 
                 Vector2 aimSource = Weapon.transform.position;
                 
                 float desiredWeaponAngle = Utils.DirectionToAngle(
                     (aimTarget - aimSource).normalized
-                    * _entityController.FlipMultiplier) * _entityController.FlipMultiplier;
+                    * entity.FlipMultiplier) * entity.FlipMultiplier;
                 
                 _lerpedWeaponAngle = Mathf.MoveTowardsAngle(_lerpedWeaponAngle, desiredWeaponAngle,
                     WEAPON_ANGLE_LERP_SPEED * Time.deltaTime * (1f / Weapon.weight));
                 float finalAngle = _lerpedWeaponAngle + _recoilAngleOffset;
                 
-                closeHand.IKTarget.up = Utils.AngleToDirection(finalAngle * _entityController.FlipMultiplier)
-                                        * -_entityController.FlipMultiplier;
+                closeHand.IKTarget.up = Utils.AngleToDirection(finalAngle * entity.FlipMultiplier)
+                                        * -entity.FlipMultiplier;
                 closeHand.IKTarget.localEulerAngles = closeHand.IKTarget.localEulerAngles.SetY(0f);
                 closeHand.IKTarget.localEulerAngles = closeHand.IKTarget.localEulerAngles.SetX(0f);
                 
@@ -165,11 +164,12 @@ namespace _Project.CodeBase.Gameplay.Entity
         {
             Weapon._holdCurve.originTransform = firePivotTransform;
             //_shootTransformLocalPos = Weapon.transform.InverseTransformPoint(Weapon._shootTransform.position);
-            _entityController.OnFireWeapon += OnFireWeapon;
+            entity.OnFireWeapon += OnFireWeapon;
         }
         private void OnFireWeapon()
         {
-            Vector2 localWeaponDirection = Weapon.transform.right * _entityController.FlipMultiplier;
+            Vector2 localWeaponDirection = Weapon.transform.right * 
+                                           new Vector2(1f, entity.FlipMultiplier);
 
             Vector2 recoil = localWeaponDirection * (.015f * Weapon.recoilStrength);
             //recoil += Utils.AngleToDirection(Utils.DirectionToAngle(localWeaponDirection) - 30f)
@@ -184,12 +184,12 @@ namespace _Project.CodeBase.Gameplay.Entity
         protected override void ManageAnimatorValues()
         {
             float velocityRatio = _entityController.velocity.x / EntityController.MOVE_SPEED;
-            velocityRatio *= _entityController.FlipMultiplier;
+            velocityRatio *= entity.FlipMultiplier;
 
             _animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,
                 Time.deltaTime);
 
-            _animator.SetFloat(AimRatio, _entityController.AimAngleRatio, AIM_ANIM_SPEED, Time.deltaTime);
+            _animator.SetFloat(AimRatio, entity.AimAngleRatio, AIM_ANIM_SPEED, Time.deltaTime);
             //_animator.SetFloat(AimRatio, .5f, AIM_ANIM_SPEED, Time.deltaTime);
         }
 

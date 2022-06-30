@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -31,7 +32,9 @@ namespace _Project.CodeBase
                 DrawInspectorDebug();
 
             if (GUI.changed)
+            {
                 SceneView.RepaintAll();
+            }
         }
         protected virtual void DrawInspectorDebug()
         {

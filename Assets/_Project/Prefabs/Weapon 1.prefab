@@ -216,13 +216,13 @@ MonoBehaviour:
   _holdCurve:
     originTransform: {fileID: 0}
     start:
-      point: {x: 0.057688445, y: -0.15675278}
+      point: {x: 0.072161146, y: -0.17000572}
       weight: 1
     end:
-      point: {x: 0.057688445, y: 0.15675278}
+      point: {x: 0.07216115, y: 0.1700057}
       weight: 1
     controlPoints:
-    - point: {x: 0.19652137, y: 0}
+    - point: {x: 0.50700796, y: -0.029346704}
       weight: 1
 --- !u!1 &5635956087578123132
 GameObject:

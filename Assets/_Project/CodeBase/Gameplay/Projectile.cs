@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using _Project.CodeBase.Gameplay.EntityClasses;
+using UnityEngine;
 
 namespace _Project.CodeBase.Gameplay
 {
@@ -42,8 +43,13 @@ namespace _Project.CodeBase.Gameplay
                 float angleWithSurface = 90f - Vector2.Angle(hit.normal, -direction);
 
                 float surfaceStrength = .5f;
-                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy") ||
+                    hit.collider.gameObject.layer == LayerMask.NameToLayer("Player"))
+                {
                     surfaceStrength = .8f;
+                    hit.collider.gameObject.GetComponentInParent<Entity>()
+                        .TakeDamage(0f, hit.collider.gameObject, hit.point, hit.normal);
+                }
                 else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("World"))
                 {
                     if (hit.collider.gameObject.TryGetComponent(out Rigidbody2D rb))

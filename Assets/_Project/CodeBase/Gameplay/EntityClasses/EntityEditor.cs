@@ -1,11 +1,11 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay.Entity
+namespace _Project.CodeBase.Gameplay.EntityClasses
 {
     [CustomEditor(typeof(EntityController))]
     [CanEditMultipleObjects]
-    public class EntityControllerEditor : CustomEditor<EntityController>
+    public class EntityEditor : CustomEditor<EntityClasses.Entity>
     {
         private float _debugSize = .05f;
         private bool _overrideMoveInput;

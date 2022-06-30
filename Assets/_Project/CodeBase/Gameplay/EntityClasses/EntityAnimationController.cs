@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay.Entity
+namespace _Project.CodeBase.Gameplay.EntityClasses
 {
-    public class EntityAnimationController : MonoBehaviour
+    public class EntityAnimationController : EntityComponent<EntityAnimationController>
     {
         [SerializeField] protected bool _disableAnimator;
         [SerializeField] protected bool _disableRaycastIKCorrection;

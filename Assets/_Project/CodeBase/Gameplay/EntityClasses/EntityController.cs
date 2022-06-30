@@ -1,43 +1,14 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
 
-namespace _Project.CodeBase.Gameplay.Entity
+namespace _Project.CodeBase.Gameplay.EntityClasses
 {
-    public class EntityController : MonoBehaviour
+    public class EntityController : EntityComponent<EntityController>
     {
-        [SerializeField] private Transform _graphics;
-        [field: SerializeField] public Transform AimOrigin { get; private set; }
-        public LayerMask hitMask;
         public bool IsGrounded { get; private set; }
-        public bool FacingLeft { get; private set; }
-        public bool IsWalking { get; private set; }
-        public Vector2 AimDirection { get; private set; }
-        public Vector2 AimTarget
-        {
-            get => targetTransform ? (Vector2)targetTransform.TransformPoint(targetOffset) : targetOffset;
-            set => targetOffset =
-                targetTransform
-                    ? (Vector2)targetTransform.InverseTransformPoint(value)
-                    : value; 
-        } 
-        public Vector2 targetOffset;
-        [HideInInspector] public Transform targetTransform;
         [HideInInspector] public Vector2 velocity;
-        [HideInInspector] public Vector2 moveInput;
-        public float AimAngle { get; private set; }
-        private float _localTargetAimAngle;
-        private float _localLerpedAimAngle;
-        public float AimAngleRatio { get; private set; }
-        public Vector2 AimHoldLocation => weapon ? weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
-        public Vector2 LocalAimHoldLocation => weapon ? weapon.GetLocalHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
-        public UnityAction OnAddWeapon;
-        public UnityAction OnFireWeapon;
+        
         private CharacterController _characterController;
-        public int FlipMultiplier => FacingLeft ? -1 : 1;
-        public Weapon weapon;
-        [HideInInspector] public bool overrideTriggerDown;
-        [HideInInspector] public bool overriddenTriggerDownValue;
         private Vector3 _smoothVel;
         private bool _wasGrounded;
         private bool _wasOnCeiling;
@@ -65,47 +36,15 @@ namespace _Project.CodeBase.Gameplay.Entity
         private const float CEILING_CHECK_RADIUS = RADIUS - .02f;
         private const float CEILING_CHECK_HEIGHT = HEIGHT - CEILING_CHECK_RADIUS + .025f;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             TryGetComponent(out _characterController);
-            if (weapon != null)
-                AddWeapon(weapon);
         }
 
-        private void Update()
+        protected override void FixedUpdate()
         {
-            float localAimX = AimTarget.x - transform.position.x;
-            float flipCutoff = .075f;
-            if (!FacingLeft && localAimX < -flipCutoff)
-                FacingLeft = true;
-            else if (FacingLeft && localAimX > flipCutoff)
-                FacingLeft = false;
-
-            if (AimOrigin == null)
-                AimDirection = new Vector2(FlipMultiplier, 0f);
-            else
-                AimDirection = (AimTarget - (Vector2) AimOrigin.position).normalized;
-
-            _localTargetAimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
-            _localLerpedAimAngle = Mathf.Lerp(_localLerpedAimAngle, _localTargetAimAngle, 10f * Time.deltaTime); //Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
-            AimAngle = _localLerpedAimAngle;
-            AimAngle = Mathf.Clamp(AimAngle, -weapon.lowestAimAngle, weapon.highestAimAngle);
-
-            if (weapon == null)
-                AimAngleRatio = .5f;
-            else
-                AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-weapon.lowestAimAngle, weapon.highestAimAngle));
-            
-            IsWalking = GameControls.Walk.IsHeld;
-        
-            _graphics.transform.localScale = _graphics.transform.localScale.SetX(FacingLeft ? -1f : 1f);
-            
-            if (overrideTriggerDown)
-                weapon.SetFireTriggerState(overriddenTriggerDownValue);
-        }
-
-        private void FixedUpdate()
-        {
+            base.FixedUpdate();
             MovePlayerBasedOnInput();
         
             IsGrounded = CheckSphereInHeight(GROUND_CHECK_HEIGHT, GROUND_CHECK_RADIUS);
@@ -150,42 +89,6 @@ namespace _Project.CodeBase.Gameplay.Entity
             _wasOnCeiling = _isOnCeiling;
         }
 
-        public void AddWeapon(Weapon weapon)
-        {
-            this.weapon = weapon;
-            weapon.hitMask = hitMask;
-            OnAddWeapon.Invoke();
-            weapon.onFire.AddListener(OnFireWeapon);
-        }
-
-        public void RemoveWeapon(Weapon weapon)
-        {
-            this.weapon.hitMask = 0;
-            this.weapon = null;
-            weapon.onFire.RemoveListener(OnFireWeapon);
-        }
-
-        public void TryShoot()
-        {
-            if (weapon != null)
-            {
-                weapon.SetFireTriggerState(true);
-            }
-        }
-
-        public void StopShooting()
-        {
-            if (weapon != null)
-            {
-                weapon.SetFireTriggerState(false);    
-            }
-        }
-
-        public void TakeDamage(float damage, GameObject hitObject, Vector2 location)
-        {
-            
-        }
-
         public void Jump()
         {
             StopCoroutineIfNotNull(_jumpQueueRoutine);
@@ -196,10 +99,10 @@ namespace _Project.CodeBase.Gameplay.Entity
         private void MovePlayerBasedOnInput()
         {
             float speed = MOVE_SPEED;
-            if (IsWalking)
+            if (entity.IsWalking)
                 speed *= WALK_SPEED_MULTIPLIER;
             float yVel = velocity.y;
-            Vector2 input = Utils.ClampVector(new Vector2(moveInput.x, 0f), -Vector2.one, Vector2.one);
+            Vector2 input = Utils.ClampVector(new Vector2(entity.moveInput.x, 0f), -Vector2.one, Vector2.one);
             velocity = Vector3.SmoothDamp(velocity, input * speed, ref _smoothVel, .125f);
             velocity.y = yVel;
 
