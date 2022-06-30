@@ -67,7 +67,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             _localTargetAimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             _localLerpedAimAngle = Mathf.Lerp(_localLerpedAimAngle, _localTargetAimAngle, 10f * Time.deltaTime); //Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             AimAngle = _localLerpedAimAngle;
-            AimAngle = Mathf.Clamp(AimAngle, -weapon.lowestAimAngle, weapon.highestAimAngle);
+            AimAngle = Mathf.Clamp(AimAngle, weapon != null ? -weapon.lowestAimAngle : -90f, 
+                weapon != null ? weapon.highestAimAngle : 90f);
 
             if (weapon == null)
                 AimAngleRatio = .5f;

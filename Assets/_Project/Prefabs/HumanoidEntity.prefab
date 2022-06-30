@@ -4420,7 +4420,7 @@ GameObject:
   - component: {fileID: 8819161054966071189}
   - component: {fileID: 8819161054966071190}
   m_Layer: 0
-  m_Name: UpdatedPlayerEntity
+  m_Name: HumanoidEntity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4455,9 +4455,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8cb26e61c794bd9987ac69841aa756f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _graphics: {fileID: 0}
   hitMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 320
+  <AimOrigin>k__BackingField: {fileID: 8819161053271429194}
+  weapon: {fileID: 0}
+  targetOffset: {x: 0, y: 0}
+  targetTransform: {fileID: 0}
+  moveInput: {x: 0, y: 0}
+  overrideTriggerDown: 0
+  overriddenTriggerDownValue: 0
 --- !u!114 &8819161054966071188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4470,15 +4478,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fc85eb086715d74c96f193d8fb79ac9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _graphics: {fileID: 8819161053333223307}
-  <AimOrigin>k__BackingField: {fileID: 8819161053271429194}
-  targetOffset: {x: 0, y: 0}
-  targetTransform: {fileID: 0}
   velocity: {x: 0, y: 0}
-  moveInput: {x: 0, y: 0}
-  weapon: {fileID: 7710026866499180284}
-  overrideTriggerDown: 0
-  overriddenTriggerDownValue: 0
 --- !u!114 &8819161054966071191
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5146,17 +5146,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 08f64ac9a2efa314495f9c76c6a425ec, type: 3}
---- !u!114 &7710026866499180284 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4858672648218339410, guid: 08f64ac9a2efa314495f9c76c6a425ec, type: 3}
-  m_PrefabInstance: {fileID: 2995735506040602286}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 37d6ff3daed246f8816ca91507bb71f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &7710026866499180287 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4858672648218339409, guid: 08f64ac9a2efa314495f9c76c6a425ec, type: 3}

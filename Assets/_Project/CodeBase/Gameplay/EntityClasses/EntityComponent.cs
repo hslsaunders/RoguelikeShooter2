@@ -1,17 +1,22 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace _Project.CodeBase.Gameplay.EntityClasses
 {
     [RequireComponent(typeof(Entity))]
-    public class EntityComponent<T> : MonoBehaviour
+    public class EntityComponent : MonoBehaviour
     {
         protected Entity entity;
 
-        protected void Awake()
+        protected virtual void OnValidate()
         {
-            entity = GetComponent<Entity>();
+            if (entity == null)
+                entity = GetComponent<Entity>();
         }
 
+        protected void Awake()
+        {
+        }
         protected virtual void Start() {}
         protected virtual void Update() {}
         protected virtual void FixedUpdate() {}

@@ -2,7 +2,7 @@
 
 namespace _Project.CodeBase.Gameplay.EntityClasses
 {
-    public class EntityAnimationController : EntityComponent<EntityAnimationController>
+    public class EntityAnimationController : EntityComponent
     {
         [SerializeField] protected bool _disableAnimator;
         [SerializeField] protected bool _disableRaycastIKCorrection;
@@ -10,15 +10,16 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         protected Animator _animator;
         protected EntityController _entityController;
         
-        protected virtual void OnValidate()
+        protected override void OnValidate()
         {
+            base.OnValidate();
             TryGetComponent(out _animator);
             TryGetComponent(out _entityController);
         }
 
-
-        protected virtual void Update()
+        protected override void Update()
         {
+            base.Update();
             if (!_disableAnimator && Application.isPlaying)
             {
                 ManageAnimatorValues();

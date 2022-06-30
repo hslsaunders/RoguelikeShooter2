@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Project.CodeBase.Gameplay.EntityClasses
 {
-    public class EntityController : EntityComponent<EntityController>
+    public class EntityController : EntityComponent
     {
         public bool IsGrounded { get; private set; }
         [HideInInspector] public Vector2 velocity;

@@ -1,8 +1,6 @@
 ﻿using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
-using UnityEngine.Rendering.VirtualTexturing;
 
 namespace _Project.CodeBase.Gameplay
 {
