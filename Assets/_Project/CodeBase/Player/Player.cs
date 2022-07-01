@@ -37,9 +37,9 @@ namespace _Project.CodeBase.Player
                 entity.Controller.Jump();
 
             if (GameControls.Shoot.IsHeld)
-                entity.TryShoot();
+                entity.TryFireHoldable();
             else
-                entity.StopShooting();
+                entity.StopFiringHoldable();
         }
     }
 }

@@ -28,7 +28,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private float _currentWeaponAngle;
         private float _recoilAngleOffset;
         private float _recoilAngleOffsetTarget;
-        private Weapon Weapon => entity.weapon;
+        private Weapon Weapon => entity.Weapon;
         private Transform firePivotTransform;
         
         private const float TORSO_TERRAIN_OFFSET = .25f;
@@ -50,18 +50,19 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private float _lastAimAngle;
         private float _totalAngleChange;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             firePivotTransform = _closeArmPivot;
 
             //StartCoroutine(TrackAngleChange())
+            
+            entity.OnAddWeapon += OnEquipWeapon;
         }
         
         protected override void OnValidate()
         {
             base.OnValidate();
-            
-            entity.OnAddWeapon += OnEquipWeapon;
 
             if (_IKManager2D == null)
                 _IKManager2D = GetComponent<IKManager2D>();
@@ -162,9 +163,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private void OnEquipWeapon()
         {
-            Weapon._holdCurve.originTransform = firePivotTransform;
+            Weapon.holdCurve.originTransform = firePivotTransform;
             //_shootTransformLocalPos = Weapon.transform.InverseTransformPoint(Weapon._shootTransform.position);
-            entity.OnFireWeapon += OnFireWeapon;
+            entity.Weapon.onFire.AddListener(OnFireWeapon);
         }
         private void OnFireWeapon()
         {

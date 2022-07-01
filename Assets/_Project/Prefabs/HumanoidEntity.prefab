@@ -4455,12 +4455,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8cb26e61c794bd9987ac69841aa756f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _graphics: {fileID: 0}
+  _graphics: {fileID: 8819161053333223306}
   hitMask:
     serializedVersion: 2
     m_Bits: 320
   <AimOrigin>k__BackingField: {fileID: 8819161053271429194}
-  weapon: {fileID: 0}
+  weaponInventory: []
+  holdableInventory: []
   targetOffset: {x: 0, y: 0}
   targetTransform: {fileID: 0}
   moveInput: {x: 0, y: 0}

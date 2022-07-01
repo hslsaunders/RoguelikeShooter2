@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,19 +19,21 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             set => targetOffset =
                 targetTransform
                     ? (Vector2)targetTransform.InverseTransformPoint(value)
-                    : value; 
+                    : value;
         }
         public float AimAngleRatio { get; private set; }
-        public Vector2 AimHoldLocation => weapon ? weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
-        public Vector2 LocalAimHoldLocation => weapon ? weapon.GetLocalHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
+        public Vector2 AimHoldLocation => Weapon ? Weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
+        public Vector2 LocalAimHoldLocation => Weapon ? Weapon.GetLocalHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
         public int FlipMultiplier => FacingLeft ? -1 : 1;
         public Vector2 HorizontalFlipMultiplier => new Vector2(FacingLeft ? -1 : 1, 1f);
         public float AimAngle { get; private set; }
         public EntityController Controller { get; private set; }
         
         public UnityAction OnAddWeapon;
-        public UnityAction OnFireWeapon;
-        public Weapon weapon;
+        public Holdable CurrentHoldable { get; private set; }
+        public Weapon Weapon { get; private set; }
+        public List<Weapon> weaponInventory;
+        public List<Holdable> holdableInventory;
         public Vector2 targetOffset;
         [HideInInspector] public Transform targetTransform;
         [HideInInspector] public Vector2 moveInput;
@@ -40,16 +43,30 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private float _localTargetAimAngle;
         private float _localLerpedAimAngle;
 
+        public const int DEFAULT_WEAPON_COUNT = 2;
+
         private void Awake()
         {
-            Controller = GetComponent<EntityController>();
+            if (TryGetComponent(out EntityController controller))
+                Controller = controller;
         }
 
         private void Start()
         {
-            if (weapon != null)
-                AddWeapon(weapon);
+            if (weaponInventory.Count > 0)
+                InitializeStartingWeapons();
         }
+
+        private void InitializeStartingWeapons()
+        {
+            foreach (Weapon weapon in weaponInventory)
+            {
+                SetUpWeapon(weapon, true);
+            }
+
+            Weapon = weaponInventory[0];
+        }
+
         private void Update()
         {
             float localAimX = AimTarget.x - transform.position.x;
@@ -67,20 +84,25 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             _localTargetAimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             _localLerpedAimAngle = Mathf.Lerp(_localLerpedAimAngle, _localTargetAimAngle, 10f * Time.deltaTime); //Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             AimAngle = _localLerpedAimAngle;
-            AimAngle = Mathf.Clamp(AimAngle, weapon != null ? -weapon.lowestAimAngle : -90f, 
-                weapon != null ? weapon.highestAimAngle : 90f);
+            AimAngle = Mathf.Clamp(AimAngle, Weapon != null ? -Weapon.lowestAimAngle : -90f, 
+                Weapon != null ? Weapon.highestAimAngle : 90f);
 
-            if (weapon == null)
+            if (Weapon == null)
                 AimAngleRatio = .5f;
             else
-                AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-weapon.lowestAimAngle, weapon.highestAimAngle));
+                AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-Weapon.lowestAimAngle, Weapon.highestAimAngle));
             
             IsWalking = GameControls.Walk.IsHeld;
         
             _graphics.transform.localScale = _graphics.transform.localScale.SetX(FacingLeft ? -1f : 1f);
             
             if (overrideTriggerDown)
-                weapon.SetFireTriggerState(overriddenTriggerDownValue);
+                Weapon.SetFireTriggerState(overriddenTriggerDownValue);
+
+            if (GameControls.EquipWeaponOne.IsPressed)
+                EquipWeapon(0);
+            if (GameControls.EquipWeaponTwo.IsPressed)
+                EquipWeapon(1);
         }
         
         public void TakeDamage(float damage, GameObject hitObject, Vector2 location, Vector2 normal)
@@ -90,35 +112,57 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             impactParticleSystem.transform.position = location;
             impactParticleSystem.transform.up = normal;
         }
+
+        private void EquipWeapon(int index)
+        {
+            if (index >= weaponInventory.Count) return;
+            
+            EquipWeapon(weaponInventory[index]);
+        }
+        private void EquipWeapon(Weapon weapon)
+        {
+            if (Weapon != null)
+                Weapon.gameObject.SetActive(false);
+            
+            Weapon = weapon;
+            
+            if (Weapon != null)
+                Weapon.gameObject.SetActive(true);
+        }
         
         public void AddWeapon(Weapon weapon)
         {
-            this.weapon = weapon;
-            weapon.hitMask = hitMask;
+            EquipWeapon(weapon);
+            weaponInventory.Add(weapon);
             OnAddWeapon.Invoke();
-            weapon.onFire.AddListener(OnFireWeapon);
+            SetUpWeapon(weapon, true);
         }
 
         public void RemoveWeapon(Weapon weapon)
         {
-            this.weapon.hitMask = 0;
-            this.weapon = null;
-            weapon.onFire.RemoveListener(OnFireWeapon);
+            EquipWeapon(null);
+            weaponInventory.Remove(weapon);
+            SetUpWeapon(weapon, false);
         }
 
-        public void TryShoot()
+        private void SetUpWeapon(Weapon weapon, bool addingWeapon)
         {
-            if (weapon != null)
+            weapon.hitMask = addingWeapon ? hitMask : (LayerMask) 0;
+        }
+        
+        public void TryFireHoldable()
+        {
+            if (Weapon != null)
             {
-                weapon.SetFireTriggerState(true);
+                Weapon.SetFireTriggerState(true);
             }
         }
 
-        public void StopShooting()
+        public void StopFiringHoldable()
         {
-            if (weapon != null)
+            if (Weapon != null)
             {
-                weapon.SetFireTriggerState(false);    
+                Weapon.SetFireTriggerState(false);    
             }
         }
     }

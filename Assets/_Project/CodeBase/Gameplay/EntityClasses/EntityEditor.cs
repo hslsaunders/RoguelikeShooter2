@@ -26,14 +26,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             }
             else
                 _worldSpaceTargetPos = CastedTarget.AimTarget;
-                
         }
 
         protected override void DrawInspectorDebug()
         {
             base.DrawInspectorDebug();
-            
-            //AddObjectField(ref CastedTarget.weaponController.weapon, "Weapon");
+
             AddFloatSlider(ref CastedTarget.moveInput.x, "Override Input", -1f, 1f, ref _overrideMoveInput);
             AddBoolField(ref CastedTarget.overriddenTriggerDownValue, ref CastedTarget.overrideTriggerDown,
                 "Override Trigger Down Value");

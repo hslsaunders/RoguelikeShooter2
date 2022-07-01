@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEditor;
-using UnityEditor.SceneManagement;
+﻿using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -11,16 +9,16 @@ namespace _Project.CodeBase
         protected bool _debug = true;
         public T CastedTarget { get; private set; }
         protected virtual bool MakeInspectorDebugToggleable => true;
+        
+        protected const float DEFAULT_CIRCLE_SIZE = .05f;
+        protected const float DEFAULT_LINE_SIZE = 1f;
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             CastedTarget = (T)target;
         }
 
-        protected virtual void OnSceneGUI()
-        {
-            
-        }
+        protected virtual void OnSceneGUI() {}
         
         public override void OnInspectorGUI()
         {
@@ -40,12 +38,28 @@ namespace _Project.CodeBase
         {
         }
 
-        public void AddCircleHandle(ref Vector2 targetPoint, ref float _debugSize)
+        protected void AddCircleHandle(ref Vector2 targetPoint, ref float _debugSize)
         {
             _debugSize = Handles.RadiusHandle(Quaternion.identity, targetPoint, _debugSize);
             targetPoint = Handles.PositionHandle(targetPoint, Quaternion.identity);
         }
 
+        protected void DrawAngleHandle(Vector2 source, float angle, float angleSliderLength, ref float sliderDist)
+        {
+            Vector2 lineTip = source + Utils.AngleToDirection(angle) * sliderDist;
+
+            EditorGUI.BeginChangeCheck();
+            Vector2 handlePos = Handles.Slider(lineTip,
+                lineTip, angleSliderLength, Handles.ArrowHandleCap, 0f);
+
+            if (EditorGUI.EndChangeCheck())
+                sliderDist = handlePos.magnitude;
+
+            lineTip = source + Utils.AngleToDirection(angle) * sliderDist;
+            
+            Handles.DrawLine(source, lineTip);
+        }
+        
         protected void AddObjectFieldNoFormat<K>(ref K obj, string label, params GUILayoutOption[] options) where K : Object
         {
             obj = (K)EditorGUILayout.ObjectField(label, obj, typeof(K), true, options);

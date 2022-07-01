@@ -1,9 +1,7 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Project.CodeBase.Gameplay.EntityClasses
 {
-    [RequireComponent(typeof(Entity))]
     public class EntityComponent : MonoBehaviour
     {
         protected Entity entity;
