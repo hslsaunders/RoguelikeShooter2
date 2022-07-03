@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -9,6 +9,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
     {
         [SerializeField] private GameObject _graphics;
         public LayerMask hitMask;
+        public int numHands;
         [field: SerializeField] public Transform AimOrigin { get; private set; }
         public bool IsWalking { get; private set; }
         public bool FacingLeft { get; private set; }
@@ -22,16 +23,14 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                     : value;
         }
         public float AimAngleRatio { get; private set; }
-        public Vector2 AimHoldLocation => Weapon ? Weapon.GetHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
-        public Vector2 LocalAimHoldLocation => Weapon ? Weapon.GetLocalHoldPosFromAimAngleRatio(AimAngleRatio) : Vector2.zero;
         public int FlipMultiplier => FacingLeft ? -1 : 1;
         public Vector2 HorizontalFlipMultiplier => new Vector2(FacingLeft ? -1 : 1, 1f);
         public float AimAngle { get; private set; }
+        public int NumAvailableHands => numHands - numHandsInUse;
+        public int MinNumHandsForEquippedHoldable => EquippedHoldables.Sum(holdable => holdable.numHandsRequired);
         public EntityController Controller { get; private set; }
-        
-        public UnityAction OnAddWeapon;
-        public Holdable CurrentHoldable { get; private set; }
-        public Weapon Weapon { get; private set; }
+        public UnityAction OnEquipHoldable;
+        public readonly List<Holdable> EquippedHoldables = new List<Holdable>();
         public List<Weapon> weaponInventory;
         public List<Holdable> holdableInventory;
         public Vector2 targetOffset;
@@ -39,6 +38,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         [HideInInspector] public Vector2 moveInput;
         [HideInInspector] public bool overrideTriggerDown;
         [HideInInspector] public bool overriddenTriggerDownValue;
+        [HideInInspector] public int numHandsInUse;
 
         private float _localTargetAimAngle;
         private float _localLerpedAimAngle;
@@ -64,7 +64,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 SetUpWeapon(weapon, true);
             }
 
-            Weapon = weaponInventory[0];
+            EquipWeapon(0);
         }
 
         private void Update()
@@ -84,25 +84,30 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             _localTargetAimAngle = Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             _localLerpedAimAngle = Mathf.Lerp(_localLerpedAimAngle, _localTargetAimAngle, 10f * Time.deltaTime); //Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
             AimAngle = _localLerpedAimAngle;
-            AimAngle = Mathf.Clamp(AimAngle, Weapon != null ? -Weapon.lowestAimAngle : -90f, 
-                Weapon != null ? Weapon.highestAimAngle : 90f);
+            //AimAngle = Mathf.Clamp(AimAngle, EquippedWeapons != null ? -EquippedWeapons.lowestAimAngle : -90f, 
+            //    EquippedWeapons != null ? EquippedWeapons.highestAimAngle : 90f);
 
-            if (Weapon == null)
+            if (EquippedHoldables == null)
                 AimAngleRatio = .5f;
             else
-                AimAngleRatio = Mathf.Clamp01(AimAngle.Remap01(-Weapon.lowestAimAngle, Weapon.highestAimAngle));
-            
+            {
+                //AimAngleRatio =
+                //    Mathf.Clamp01(AimAngle.Remap01(-EquippedWeapons.lowestAimAngle, EquippedWeapons.highestAimAngle));
+                AimAngleRatio = AimAngle.Remap01(-90f, 90f);
+            }
+
             IsWalking = GameControls.Walk.IsHeld;
         
             _graphics.transform.localScale = _graphics.transform.localScale.SetX(FacingLeft ? -1f : 1f);
-            
-            if (overrideTriggerDown)
-                Weapon.SetFireTriggerState(overriddenTriggerDownValue);
 
-            if (GameControls.EquipWeaponOne.IsPressed)
-                EquipWeapon(0);
-            if (GameControls.EquipWeaponTwo.IsPressed)
-                EquipWeapon(1);
+
+            if (overrideTriggerDown)
+            {
+                foreach (Holdable holdable in holdableInventory)
+                    holdable.SetFireTriggerState(overriddenTriggerDownValue);
+                foreach (Weapon weapon in weaponInventory)
+                    weapon.SetFireTriggerState(overriddenTriggerDownValue);
+            }
         }
         
         public void TakeDamage(float damage, GameObject hitObject, Vector2 location, Vector2 normal)
@@ -113,34 +118,64 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             impactParticleSystem.transform.up = normal;
         }
 
-        private void EquipWeapon(int index)
+        public void EquipWeapon(int index)
         {
             if (index >= weaponInventory.Count) return;
             
-            EquipWeapon(weaponInventory[index]);
+            EquipHoldable(weaponInventory[index]);
         }
-        private void EquipWeapon(Weapon weapon)
+
+        private void EquipHoldable(Holdable holdable)
         {
-            if (Weapon != null)
-                Weapon.gameObject.SetActive(false);
+            if (EquippedHoldables.Contains(holdable)) return;
             
-            Weapon = weapon;
+            if (numHands < holdable.numHandsRequired)
+            {
+                Debug.Log("NOT ENOUGH HANDS");
+                return;
+            }
             
-            if (Weapon != null)
-                Weapon.gameObject.SetActive(true);
+            while (NumAvailableHands < holdable.numHandsRequired)
+            {
+                Holdable primaryHoldable = EquippedHoldables[0];
+                UnequipHoldable(primaryHoldable);
+            }
+            
+            holdable.gameObject.SetActive(true);
+            EquippedHoldables.Add(holdable);
+            OnEquipHoldable.Invoke();
+
+            numHandsInUse += holdable.numHandsRequired;
         }
-        
+
+        private void UnequipWeapon(int index)
+        {
+            if (index >= EquippedHoldables.Count)
+            {
+                Debug.Log("look out ya doof");
+                return;
+            }
+
+            UnequipHoldable(EquippedHoldables[index]);
+        }
+        private void UnequipHoldable(Holdable holdable)
+        {
+            holdable.SetFireTriggerState(false);
+            holdable.gameObject.SetActive(false);
+            EquippedHoldables.Remove(holdable);
+            numHandsInUse -= holdable.numHandsRequired;
+        }
+
         public void AddWeapon(Weapon weapon)
         {
-            EquipWeapon(weapon);
+            EquipHoldable(weapon);
             weaponInventory.Add(weapon);
-            OnAddWeapon.Invoke();
             SetUpWeapon(weapon, true);
         }
 
         public void RemoveWeapon(Weapon weapon)
         {
-            EquipWeapon(null);
+            EquipHoldable(null);
             weaponInventory.Remove(weapon);
             SetUpWeapon(weapon, false);
         }
@@ -150,19 +185,41 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             weapon.hitMask = addingWeapon ? hitMask : (LayerMask) 0;
         }
         
-        public void TryFireHoldable()
+        public void FirePrimary()
         {
-            if (Weapon != null)
+            if (EquippedHoldables.Count > 0)
             {
-                Weapon.SetFireTriggerState(true);
+                EquippedHoldables[0].SetFireTriggerState(true);
             }
         }
 
-        public void StopFiringHoldable()
+        public void StopFiringPrimary()
         {
-            if (Weapon != null)
+            if (EquippedHoldables.Count > 0)
             {
-                Weapon.SetFireTriggerState(false);    
+                EquippedHoldables[0].SetFireTriggerState(false);    
+            }
+        }
+
+        public void FireSecondaries()
+        {
+            if (EquippedHoldables.Count > 1)
+            {
+                for (int i = 1; i < EquippedHoldables.Count; i++)
+                {
+                    EquippedHoldables[i].SetFireTriggerState(true);
+                }
+            }
+        }
+        
+        public void StopFireSecondaries()
+        {
+            if (EquippedHoldables.Count > 1)
+            {
+                for (int i = 1; i < EquippedHoldables.Count; i++)
+                {
+                    EquippedHoldables[i].SetFireTriggerState(false);
+                }
             }
         }
     }

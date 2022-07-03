@@ -163,36 +163,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37d6ff3daed246f8816ca91507bb71f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryPivot: {fileID: 181017543176671898}
-  secondaryPivot: {fileID: 159928815652585602}
-  _projectilePrefab: {fileID: 1478514079494431033, guid: baff7f5dfaa4c384499651b1cac2fdc4, type: 3}
-  _shootTransform: {fileID: 1566015156813329678}
-  weight: 1.5
-  recoilStrength: 1
-  maxSpread: 7.5
-  spreadGrowthRate: 0.25
+  numHandsRequired: 1
+  holdPivots:
+  - {fileID: 181017543176671898}
+  - {fileID: 159928815652585602}
   highestAimAngle: 70
   lowestAimAngle: 70
   _fullAuto: 0
   _fireDelay: 0.125
+  weight: 1.5
+  holdCurve:
+    originTransform: {fileID: 0}
+    start:
+      point: {x: 0.14793111, y: -0.4054743}
+      weight: 1
+    end:
+      point: {x: 0.14793111, y: 0.4054743}
+      weight: 1
+    controlPoints:
+    - point: {x: 0.69857246, y: -0.00000009647067}
+      weight: 1
+  _projectilePrefab: {fileID: 1478514079494431033, guid: baff7f5dfaa4c384499651b1cac2fdc4, type: 3}
+  _shootTransform: {fileID: 1566015156813329678}
+  recoilStrength: 1
+  maxSpread: 7.5
+  spreadGrowthRate: 0.25
   hitMask:
     serializedVersion: 2
     m_Bits: 0
-  onFire:
-    m_PersistentCalls:
-      m_Calls: []
   minDistToAimPivot: 0.20725
-  _holdCurve:
-    originTransform: {fileID: 0}
-    start:
-      point: {x: 0.17010441, y: -0.4443285}
-      weight: 1
-    end:
-      point: {x: 0.17010441, y: 0.4443285}
-      weight: 1
-    controlPoints:
-    - point: {x: 0.43965352, y: 0}
-      weight: 1
 --- !u!1 &1108913955136735955
 GameObject:
   m_ObjectHideFlags: 0
@@ -350,8 +349,8 @@ LineRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Positions:
-  - {x: -0.6012037, y: 2.7422848, z: -0.2591407}
-  - {x: 1.261234, y: 5.403719, z: 0}
+  - {x: 0.09775751, y: -0.27938884, z: -0.2591407}
+  - {x: 0.09867125, y: -3.5277588, z: 0}
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1

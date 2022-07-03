@@ -856,6 +856,13 @@ namespace _Project.CodeBase
         public static Vector2Int ToInt(this Vector2 v) => new Vector2Int((int)v.x, (int)v.y);
         public static Vector2 SetX(this Vector2 v, float newX) => new Vector2(newX, v.y);
         public static Vector2 SetY(this Vector2 v, float newY) => new Vector2(v.x, newY);
+
+        public static Vector2 ScreenDims => new Vector2(Screen.width, Screen.height);
+
+        public static bool ScreenContainsScreenPoint(Vector2 pos) =>
+            PointInsideRect(ScreenDims, ScreenDims/2f, pos);
+
+        public static bool MouseInWindow() => ScreenContainsScreenPoint(Input.mousePosition);
     }
 
     public enum TextMod

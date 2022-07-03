@@ -160,7 +160,7 @@ GameObject:
   - component: {fileID: 4858672648218339409}
   - component: {fileID: 4858672648218339410}
   m_Layer: 0
-  m_Name: Weapon 1
+  m_Name: Rifle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -194,23 +194,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37d6ff3daed246f8816ca91507bb71f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primaryPivot: {fileID: 4888179183123268405}
-  secondaryPivot: {fileID: 4858672646155342125}
+  numHandsRequired: 2
+  holdPivots:
+  - {fileID: 4888179183123268405}
+  - {fileID: 4858672646155342125}
   highestAimAngle: 70
   lowestAimAngle: 70
   _fullAuto: 1
   _fireDelay: 0.083333336
   weight: 1.5
-  onFire:
-    m_PersistentCalls:
-      m_Calls: []
   holdCurve:
     originTransform: {fileID: 0}
     start:
-      point: {x: 0.09211195, y: -0.23918179}
+      point: {x: 0.089473434, y: -0.24269965}
       weight: 1
     end:
-      point: {x: 0.09211195, y: 0.23918179}
+      point: {x: 0.089473434, y: 0.24269965}
       weight: 1
     controlPoints:
     - point: {x: 0.37056983, y: -0.00000009647067}
@@ -345,11 +344,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6749079443716435807, guid: ac8c56598a5cdec42b69dfa9148e7cb3, type: 3}
       propertyPath: m_Positions.Array.data[1].x
-      value: 3.4587607
+      value: 3.9721787
       objectReference: {fileID: 0}
     - target: {fileID: 6749079443716435807, guid: ac8c56598a5cdec42b69dfa9148e7cb3, type: 3}
       propertyPath: m_Positions.Array.data[1].y
-      value: 0.03531757
+      value: 0.03546211
       objectReference: {fileID: 0}
     - target: {fileID: 6749079443716435807, guid: ac8c56598a5cdec42b69dfa9148e7cb3, type: 3}
       propertyPath: m_Positions.Array.data[1].z

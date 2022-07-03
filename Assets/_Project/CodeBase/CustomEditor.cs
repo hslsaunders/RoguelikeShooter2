@@ -71,7 +71,7 @@ namespace _Project.CodeBase
             AddObjectFieldNoFormat(ref obj, label);
             EditorGUILayout.EndHorizontal();
         }
-
+        
         protected void AddBoolFieldNoFormat(ref bool boolValue, string label, params GUILayoutOption[] options)
         {
             EditorGUILayout.PrefixLabel(label);

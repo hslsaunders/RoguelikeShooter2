@@ -3,7 +3,6 @@ using Random = UnityEngine.Random;
 
 namespace _Project.CodeBase.Gameplay
 {
-    [ExecuteAlways]
     public class Weapon : Holdable
     {
         [SerializeField] private GameObject _projectilePrefab;
@@ -27,9 +26,10 @@ namespace _Project.CodeBase.Gameplay
             
             holdCurve.SetOriginTransforms();
         }
-        
-        private void Update()
+
+        protected override void Update()
         {
+            base.Update();
             _spreadEffect = Mathf.Clamp(_spreadEffect - SPREAD_DECAY_RATE * Time.deltaTime, 0f, 1f);
             
             //float pingPongValue = Mathf.PingPong(PING_PONG_RATE * Time.deltaTime, 1f);

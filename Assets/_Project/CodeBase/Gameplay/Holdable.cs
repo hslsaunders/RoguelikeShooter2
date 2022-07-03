@@ -1,20 +1,25 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace _Project.CodeBase.Gameplay
 {
+    [ExecuteAlways]
     public class Holdable : MonoBehaviour
     {
-        public bool oneHanded;
-        public Transform primaryPivot;
-        public Transform secondaryPivot;
+        public int numHandsRequired;
+        public Transform[] holdPivots;
         [Range(0f, 90)] public float highestAimAngle;
         [Range(0f, 90)] public float lowestAimAngle;
         [SerializeField] protected bool _fullAuto;
         [SerializeField] protected float _fireDelay;
         [Range(.1f, 3f)] public float weight;
-        [HideInInspector] public UnityEvent onFire;
+        [NonSerialized] public readonly UnityEvent onFire = new UnityEvent();
         public BezierCurve holdCurve;
+        [HideInInspector] public Vector2 localHoldPosition;
+        public bool HasSuperfluousHoldPivots => holdPivots.Length > numHandsRequired;
+        public int NumSuperfluousHoldPivots => HasSuperfluousHoldPivots ? holdPivots.Length - numHandsRequired : 0;
+        
         private float _lastFireTime;
         private bool _triggerDown;
         private void OnValidate()
@@ -24,7 +29,9 @@ namespace _Project.CodeBase.Gameplay
             
             holdCurve.SetOriginTransforms();
         }
-        
+
+        protected virtual void Update() {}
+
 
         public void SetFireTriggerState(bool down)
         {

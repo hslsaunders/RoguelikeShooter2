@@ -12,9 +12,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 entity = GetComponent<Entity>();
         }
 
-        protected void Awake()
-        {
-        }
+        protected void Awake() {}
         protected virtual void Start() {}
         protected virtual void Update() {}
         protected virtual void FixedUpdate() {}

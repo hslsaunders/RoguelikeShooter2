@@ -7,7 +7,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
     [ExecuteAlways]
     public class HumanoidAnimationController : EntityAnimationController
     {
-        [SerializeField] private float _handLerpSpeed;
         [SerializeField] private Transform _hipTransform;
         [SerializeField] private Transform _shoulderTransform;
         [SerializeField] private Transform _closeArmPivot;
@@ -16,7 +15,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         public IKTransform farHand;
         public IKTransform closeFoot;
         public IKTransform farFoot;
-        private IKManager2D _IKManager2D;
         private Vector2 _lerpedCloseHandPos;
         private Vector2 _recoilCloseHandOffset;
         private Vector2 _recoilCloseHandOffsetTarget;
@@ -25,10 +23,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private static readonly int AimRatio = Animator.StringToHash("AimRatio");
         private Vector2 _oldLowerTorsoPos;
         private float _lerpedWeaponAngle;
-        private float _currentWeaponAngle;
         private float _recoilAngleOffset;
         private float _recoilAngleOffsetTarget;
-        private Weapon Weapon => entity.Weapon;
+        //private Weapon Weapon => entity.EquippedWeapons;
         private Transform firePivotTransform;
         
         private const float TORSO_TERRAIN_OFFSET = .25f;
@@ -50,22 +47,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private float _lastAimAngle;
         private float _totalAngleChange;
 
-        protected override void Start()
-        {
-            base.Start();
-            firePivotTransform = _closeArmPivot;
-
-            //StartCoroutine(TrackAngleChange())
-            
-            entity.OnAddWeapon += OnEquipWeapon;
-        }
-        
         protected override void OnValidate()
         {
             base.OnValidate();
 
-            if (_IKManager2D == null)
-                _IKManager2D = GetComponent<IKManager2D>();
+            if (IKManager2D == null)
+                IKManager2D = GetComponent<IKManager2D>();
         }
 
         protected override void LateUpdate()
@@ -76,18 +63,19 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
             float targetTorsoOffsetY = 0f;
             if (Physics.Raycast(transform.position + new Vector3(0f, EntityController.HEIGHT / 2f),
-                Vector3.down, out RaycastHit hitInfo, EntityController.HEIGHT / 2f + .05f,  Layers.WorldMask))
+                Vector3.down, out RaycastHit hitInfo, EntityController.HEIGHT / 2f + .05f, Layers.WorldMask))
             {
                 float terrainOffset = Mathf.Abs(90 - Utils.DirectionToAngle(hitInfo.normal))
-                    .Remap( 0f, 90f, 0f, -TORSO_TERRAIN_OFFSET);
+                    .Remap(0f, 90f, 0f, -TORSO_TERRAIN_OFFSET);
 
-                float aimDirOffset = 0f;//aimRatio * TORSO_AIM_OFFSET;
-                
+                float aimDirOffset = 0f; //aimRatio * TORSO_AIM_OFFSET;
+
                 targetTorsoOffsetY = terrainOffset + aimDirOffset;
             }
+
             _torsoOffset.y = Mathf.Lerp(_torsoOffset.y, targetTorsoOffsetY, TORSO_LERP_SPEED * Time.deltaTime);
 
-            
+
             /*
             if (torso.IKTarget != null)
             {
@@ -102,6 +90,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             SyncIKToAnimation(closeFoot, _hipTransform);
             SyncIKToAnimation(farFoot, _hipTransform);
 
+            /*
             if (Application.isPlaying && Weapon != null)
             {
                 Vector2 localAimHoldLocation
@@ -111,7 +100,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 _recoilCloseHandOffsetTarget -= _recoilCloseHandOffsetTarget
                                                 * (RECOIL_TRANSLATION_DECAY_SPEED *
                                                    Time.deltaTime);
-                */
 
                 _recoilCloseHandOffsetTarget = Vector2.Lerp(_recoilCloseHandOffsetTarget, Vector2.zero,
                     RECOIL_TRANSLATION_DECAY_SPEED * Time.deltaTime);
@@ -156,19 +144,20 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 farHand.IKTarget.position = Weapon.secondaryPivot.position;
                 farHand.IKTarget.rotation = Weapon.secondaryPivot.rotation;
             }
+            */
+
             
-            _animator.Update(Time.deltaTime);
-            _IKManager2D.UpdateManager();
         }
 
         private void OnEquipWeapon()
         {
-            Weapon.holdCurve.originTransform = firePivotTransform;
+            //Weapon.holdCurve.originTransform = firePivotTransform;
             //_shootTransformLocalPos = Weapon.transform.InverseTransformPoint(Weapon._shootTransform.position);
-            entity.Weapon.onFire.AddListener(OnFireWeapon);
+            //entity.EquippedWeapons.onFire.AddListener(OnFireWeapon);
         }
         private void OnFireWeapon()
         {
+            /*
             Vector2 localWeaponDirection = Weapon.transform.right * 
                                            new Vector2(1f, entity.FlipMultiplier);
 
@@ -180,47 +169,24 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 MAX_RECOIL_DIST);
             _recoilAngleOffsetTarget = Mathf.Clamp(_recoilAngleOffsetTarget + 
                                                    5f * Weapon.recoilStrength / 2f, 0f, MAX_RECOIL_ANGLE);
+                                                   */
         }
         
         protected override void ManageAnimatorValues()
         {
-            float velocityRatio = _entityController.velocity.x / EntityController.MOVE_SPEED;
+            base.ManageAnimatorValues();
+            
+            float velocityRatio = entityController.velocity.x / EntityController.MOVE_SPEED;
             velocityRatio *= entity.FlipMultiplier;
 
-            _animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,
+            animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,
                 Time.deltaTime);
 
-            _animator.SetFloat(AimRatio, entity.AimAngleRatio, AIM_ANIM_SPEED, Time.deltaTime);
+            animator.SetFloat(AimRatio, entity.AimAngleRatio, AIM_ANIM_SPEED, Time.deltaTime);
             //_animator.SetFloat(AimRatio, .5f, AIM_ANIM_SPEED, Time.deltaTime);
         }
 
-        private void SyncIKToAnimation(IKTransform IKTrans, Transform raycastSource)
-        {
-            if (IKTrans.IKTarget != null && IKTrans.AnimationTarget != null)
-            {
-                Vector2 raycastDir = Vector3.zero;
-                if (raycastSource != null)
-                    raycastDir = IKTrans.AnimationTarget.position - raycastSource.position;
-                
-                if (!_disableRaycastIKCorrection && raycastSource != null && Physics.Raycast(raycastSource.position, raycastDir.normalized, out RaycastHit hitinfo,
-                        raycastDir.magnitude + RAYCAST_EXTRA_DIST, Layers.WorldMask))
-                {
-                    if (!IKTrans.DisableTranslation)
-                        IKTrans.IKTarget.position = hitinfo.point + hitinfo.normal * IK_PLACEMENT_OFFSET;
-                    if (!IKTrans.DisableRotation)
-                        IKTrans.IKTarget.up = hitinfo.normal;
-                }
-                else
-                {
-                    if (!IKTrans.DisableTranslation)
-                        IKTrans.IKTarget.position = IKTrans.AnimationTarget.position;
-                    if (!IKTrans.DisableRotation)
-                        IKTrans.IKTarget.rotation = IKTrans.AnimationTarget.rotation;
-                }
-            }
-        }
-        
-        
+
         private IEnumerator TrackAngleChange()
         {
             float time = 0;

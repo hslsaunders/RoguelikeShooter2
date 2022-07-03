@@ -105,6 +105,12 @@ namespace _Project.CodeBase.Gameplay
         protected override void DrawInspectorDebug()
         {
             base.DrawInspectorDebug();
+
+            if (GUILayout.Button("Save Local Weapon Position"))
+            {
+                CastedTarget.localHoldPosition = CastedTarget.transform.localPosition;
+                Debug.Log($"Saved Hold Position: {CastedTarget.localHoldPosition}");
+            }
             
             AddBoolField(ref _mirrorStartAndEnd, "Mirror Start And End");
             AddFloatField(ref _circleSize, "Circle Size");

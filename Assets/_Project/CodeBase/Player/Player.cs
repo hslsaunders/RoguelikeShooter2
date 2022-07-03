@@ -36,10 +36,30 @@ namespace _Project.CodeBase.Player
             if (GameControls.Jump.IsPressed)
                 entity.Controller.Jump();
 
-            if (GameControls.Shoot.IsHeld)
-                entity.TryFireHoldable();
+            if (GameControls.EquipWeaponOne.IsPressed)
+                entity.EquipWeapon(0);
+            if (GameControls.EquipWeaponTwo.IsPressed)
+                entity.EquipWeapon(1);
+            if (GameControls.EquipWeaponThree.IsPressed)
+                entity.EquipWeapon(2);
+            
+            if (GameControls.FirePrimary.IsHeld)
+            {
+                entity.FirePrimary();
+            }
             else
-                entity.StopFiringHoldable();
+            {
+                entity.StopFiringPrimary();
+            }
+            
+            if (GameControls.FireSecondaries.IsHeld)
+            {
+                entity.FireSecondaries();
+            }
+            else
+            {
+                entity.StopFireSecondaries();
+            }
         }
     }
 }

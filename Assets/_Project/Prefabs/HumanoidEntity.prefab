@@ -4459,6 +4459,7 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 320
+  numHands: 2
   <AimOrigin>k__BackingField: {fileID: 8819161053271429194}
   weaponInventory: []
   holdableInventory: []
@@ -4467,6 +4468,7 @@ MonoBehaviour:
   moveInput: {x: 0, y: 0}
   overrideTriggerDown: 0
   overriddenTriggerDownValue: 0
+  numHandsInUse: 0
 --- !u!114 &8819161054966071188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4494,7 +4496,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _disableAnimator: 0
   _disableRaycastIKCorrection: 0
-  _handLerpSpeed: 15
+  arms:
+  - IKTransform:
+      <IKTarget>k__BackingField: {fileID: 8819161053323001949}
+      <AnimationTarget>k__BackingField: {fileID: 8819161054454772987}
+      <DisableTranslation>k__BackingField: 0
+      <DisableRotation>k__BackingField: 0
+    firePivotTransform: {fileID: 8819161053271429194}
+    handTransform: {fileID: 8819161055178877247}
+  - IKTransform:
+      <IKTarget>k__BackingField: {fileID: 8819161053431633745}
+      <AnimationTarget>k__BackingField: {fileID: 8819161053984486981}
+      <DisableTranslation>k__BackingField: 0
+      <DisableRotation>k__BackingField: 0
+    firePivotTransform: {fileID: 8819161053710111171}
+    handTransform: {fileID: 8819161053691357669}
   _hipTransform: {fileID: 8819161055037606424}
   _shoulderTransform: {fileID: 8819161054040957343}
   _closeArmPivot: {fileID: 8819161053271429194}

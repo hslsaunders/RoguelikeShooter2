@@ -14,7 +14,8 @@ namespace _Project.CodeBase
         public static readonly KeyBind Walk = new KeyBind(KeyCode.LeftControl);
         
         //    Combat
-        public static readonly KeyBind Shoot = new KeyBind(KeyCode.Mouse0);
+        public static readonly KeyBind FirePrimary = new KeyBind(KeyCode.Mouse0);
+        public static readonly KeyBind FireSecondaries = new KeyBind(KeyCode.Mouse1);
         public static readonly KeyBind ToggleControlAim = new KeyBind(KeyCode.Escape);
         public static readonly KeyBind EquipWeaponOne = new KeyBind(KeyCode.Alpha1);
         public static readonly KeyBind EquipWeaponTwo = new KeyBind(KeyCode.Alpha2);
