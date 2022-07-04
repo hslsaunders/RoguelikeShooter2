@@ -22,7 +22,7 @@ namespace _Project.CodeBase.Gameplay
         {
             base.OnSceneGUI();
 
-            if (!_debug) return;
+            if (!debug) return;
             
             if (recastedTarget._shootTransform != null)
             {

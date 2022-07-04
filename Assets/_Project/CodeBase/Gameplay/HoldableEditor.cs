@@ -1,6 +1,8 @@
-﻿using UnityEditor;
+﻿using System.Diagnostics;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace _Project.CodeBase.Gameplay
 {
@@ -17,13 +19,14 @@ namespace _Project.CodeBase.Gameplay
         protected float _bezierSample;
         protected int _numSteps = 20;
         protected float _aimRangeSliderDist = DEFAULT_LINE_SIZE;
+        protected bool _clampToInsideAimRange;
         private const float AIM_ANGLE_SLIDER_LENGTH = .15f;
 
         protected override void OnSceneGUI()
         {
             base.OnSceneGUI();
 
-            if (!_debug) return;
+            if (!debug) return;
 
             Transform originTransform = CastedTarget.holdCurve.originTransform
                 ? CastedTarget.holdCurve.originTransform
@@ -86,6 +89,28 @@ namespace _Project.CodeBase.Gameplay
         {
             EditorGUI.BeginChangeCheck();
             AddCircleHandle(ref oneEnd, ref _circleSize);
+            float angle = oneEnd.y > 0f
+                ? CastedTarget.highestAimAngle
+                : CastedTarget.lowestAimAngle;
+            /*
+            
+            float maxY = oneEnd.x * Mathf.Tan(angle * Mathf.Deg2Rad);
+
+            if (_clampToInsideAimRange && oneEnd.x > 0f && angle < 90f - .0001f)
+                oneEnd.y = Mathf.Min(Mathf.Abs(oneEnd.y), maxY) * Mathf.Sign(oneEnd.y);
+            */
+
+            float cushionDistance = 45f;
+            
+            Vector2 angleDir = Utils.AngleToDirection(angle);
+            Vector2 aimLine = angleDir * cushionDistance;
+            Vector2 perpPoint = oneEnd + Vector2.Perpendicular(aimLine) * -cushionDistance;
+            if (oneEnd.x > 0f && Utils.LineSegmentIntersect(Vector2.zero, angleDir, oneEnd.Abs(), perpPoint, 
+                out Vector2 intersectionPoint))
+            {
+                oneEnd = intersectionPoint.SetY(intersectionPoint.y * Mathf.Sign(oneEnd.y));
+            }
+            
             if (EditorGUI.EndChangeCheck() && _mirrorStartAndEnd)
             {
                 otherEnd = oneEnd.SetY(-oneEnd.y);
@@ -96,9 +121,11 @@ namespace _Project.CodeBase.Gameplay
         {
             Handles.color = Color.red;
 
-            HandleStartOrEndHandle(ref CastedTarget.holdCurve.start.point, ref CastedTarget.holdCurve.end.point, 
+            HandleStartOrEndHandle(ref CastedTarget.holdCurve.start.point, 
+                ref CastedTarget.holdCurve.end.point, 
                 "Start");
-            HandleStartOrEndHandle(ref CastedTarget.holdCurve.end.point, ref CastedTarget.holdCurve.start.point, 
+            HandleStartOrEndHandle(ref CastedTarget.holdCurve.end.point, 
+                ref CastedTarget.holdCurve.start.point, 
                 "End");
         }
 
@@ -106,13 +133,16 @@ namespace _Project.CodeBase.Gameplay
         {
             base.DrawInspectorDebug();
 
-            if (GUILayout.Button("Save Local Weapon Position"))
+            if (GUILayout.Button("Save Local Weapon Orientation"))
             {
                 CastedTarget.localHoldPosition = CastedTarget.transform.localPosition;
-                Debug.Log($"Saved Hold Position: {CastedTarget.localHoldPosition}");
+                CastedTarget.localHoldRotation = CastedTarget.transform.localRotation;
+                Debug.Log($"Saved {CastedTarget.name} Hold Position: {CastedTarget.localHoldPosition}, " +
+                          $"Rotation: {CastedTarget.localHoldRotation}");
             }
             
             AddBoolField(ref _mirrorStartAndEnd, "Mirror Start And End");
+            AddBoolField(ref _clampToInsideAimRange, "Clamp Start/End Inside Aim Range");
             AddFloatField(ref _circleSize, "Circle Size");
             AddIntSlider(ref _numSteps, "Curve Vertices", CastedTarget.holdCurve.NumControlPoints + 1, 100);
             AddFloatSlider(ref _bezierSample, "Bezier Sample Point", 0f, 1f, ref _displayBezierSample);

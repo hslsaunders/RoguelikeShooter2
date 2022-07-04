@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.U2D.IK;
@@ -16,9 +15,11 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         protected IKManager2D IKManager2D;
         
         [SerializeField] private List<ArmTransform> arms = new List<ArmTransform>();
-
+        
         private readonly Dictionary<Holdable, HoldableController> _holdableControllerDictionary =
             new Dictionary<Holdable, HoldableController>();
+        private readonly Dictionary<ArmTransform, HoldableController> _armAssignmentDictionary = 
+            new Dictionary<ArmTransform, HoldableController>();
         
         private const float TORSO_TERRAIN_OFFSET = .25f;
         private const float TORSO_AIM_OFFSET = 0f;
@@ -72,7 +73,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         protected virtual void OnEquipHoldable()
         {
-            List<Holdable> oldHoldables = _holdableControllerDictionary.Keys.ToList();
+            List<Holdable> unequippedHoldables = _holdableControllerDictionary.Keys.ToList();
 
             int minHandsNeeded = entity.MinNumHandsForEquippedHoldable;
             int numExtraHands = entity.numHands - minHandsNeeded;
@@ -80,14 +81,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             int armIndex = 0;
             foreach (Holdable holdable in entity.EquippedHoldables)
             {
-                if (_holdableControllerDictionary.ContainsKey(holdable))
-                {
-                    armIndex++;
-                    continue;
-                }
-
-                if (oldHoldables.Contains(holdable))
-                    oldHoldables.Remove(holdable);
+                if (unequippedHoldables.Contains(holdable))
+                    unequippedHoldables.Remove(holdable);
 
                 List<IKTransform> transforms = new List<IKTransform>();
 
@@ -109,20 +104,28 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                     transforms.Add(arm.IKTransform);
                 }
 
-                HoldableController newController;
-
-                if (holdable is Weapon)
-                    newController = new WeaponController(entity, holdable, transforms,
-                        firePivotTransform, handTransform);
+                if (_holdableControllerDictionary.TryGetValue(holdable, out HoldableController controller)) 
+                {
+                    controller.AssignData(transforms, firePivotTransform, handTransform);
+                }
                 else
-                    newController = new HoldableController(entity, holdable, transforms,
-                        firePivotTransform, handTransform);
+                {
+                    HoldableController newController;
 
-                _holdableControllerDictionary.Add(holdable, newController);
-                armIndex++;
+                    if (holdable is Weapon)
+                        newController = new WeaponController(entity, holdable, transforms,
+                            firePivotTransform, handTransform);
+                    else
+                        newController = new HoldableController(entity, holdable, transforms,
+                            firePivotTransform, handTransform);
+
+                    _holdableControllerDictionary.Add(holdable, newController);
+                }
+
+                armIndex += transforms.Count;
             }
             
-            foreach (Holdable oldHoldable in oldHoldables)
+            foreach (Holdable oldHoldable in unequippedHoldables)
                 _holdableControllerDictionary.Remove(oldHoldable);
         }
 

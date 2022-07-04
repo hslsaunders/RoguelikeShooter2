@@ -14,28 +14,48 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         
         private float _lerpedAngle;
         private float _aimAngleRatio;
+        private float _localTargetAimAngle;
+        private float _localLerpedAimAngle;
         
-        private const float HAND_ANGLE_LERP_SPEED = 720f;
-        private const float HAND_LERP_SPEED = 15f;
+        private const float HAND_ANGLE_LERP_SPEED = 640f;
+        private const float HAND_LERP_SPEED = 20f;
 
         public HoldableController(Entity entity, Holdable holdable, List<IKTransform> IKTransforms, 
             Transform firePivotTransform, Transform handTransform)
         {
+            AssignData(entity, holdable, IKTransforms, firePivotTransform, handTransform);
+        }
+
+        public void AssignData(Entity entity, Holdable holdable, List<IKTransform> IKTransforms, 
+            Transform firePivotTransform, Transform handTransform)
+        {
             this.entity = entity;
             this.holdable = holdable;
+
+            AssignData(IKTransforms, firePivotTransform, handTransform);
+            
+            holdable.onFire.AddListener(OnFire);
+        }
+
+        public void AssignData(List<IKTransform> IKTransforms,
+            Transform firePivotTransform, Transform handTransform)
+        {
             this.IKTransforms = IKTransforms;
             this.firePivotTransform = firePivotTransform;
-
+            
+            holdable.holdCurve.originTransform = firePivotTransform;
             holdable.transform.parent = handTransform;
             holdable.transform.localPosition = holdable.localHoldPosition;
-            holdable.holdCurve.originTransform = firePivotTransform;
-            holdable.onFire.AddListener(OnFire);
+            holdable.transform.localRotation = holdable.localHoldRotation;
+
+            CalculateAimAngle();
+            _localLerpedAimAngle = _localTargetAimAngle;
+            _lerpedCloseHandPos = CalculateTargetHandPos(); 
         }
         
         public virtual void Update()
         {
-            _aimAngleRatio = Mathf.Clamp01(entity.AimAngle.Remap01(-holdable.lowestAimAngle, 
-                holdable.highestAimAngle));
+            CalculateAimAngle();
             
             PreTranslationUpdate();
             
@@ -47,6 +67,26 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
             SetSecondaryTransformLocations();
             SetSecondaryTransformRotations();
+        }
+
+        protected virtual void CalculateAimAngle()
+        {
+            float flipMultiplier = entity.FlipMultiplier;
+            
+            Vector2 aimDirection;
+            if (firePivotTransform == null)
+                aimDirection = new Vector2(flipMultiplier, 0f);
+            else
+                aimDirection = (entity.AimTarget - (Vector2) firePivotTransform.position).normalized;
+
+            _localTargetAimAngle = Utils.DirectionToAngle(aimDirection * flipMultiplier) * flipMultiplier;
+            _localLerpedAimAngle = Mathf.Lerp(_localLerpedAimAngle, _localTargetAimAngle, 10f * Time.deltaTime); //Utils.DirectionToAngle(AimDirection * FlipMultiplier) * FlipMultiplier;
+            float aimAngle = _localLerpedAimAngle;
+            aimAngle = Mathf.Clamp(aimAngle, -holdable.lowestAimAngle, 
+            holdable.highestAimAngle);
+            
+            _aimAngleRatio = Mathf.Clamp01(aimAngle.Remap01(-holdable.lowestAimAngle, 
+                holdable.highestAimAngle));
         }
 
         protected virtual Vector2 CalculateFinalPrimaryHandPos() => _lerpedCloseHandPos;
@@ -69,10 +109,14 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 HAND_ANGLE_LERP_SPEED * Time.deltaTime * (1f / holdable.weight));
         }
 
+        private Vector2 CalculateTargetHandPos()
+        {
+            return holdable.GetLocalHoldPosFromAimAngleRatio(_aimAngleRatio);
+        }
+        
         protected virtual void PreTranslationUpdate()
         {
-            _lerpedCloseHandPos = Vector2.Lerp(_lerpedCloseHandPos, 
-                holdable.GetLocalHoldPosFromAimAngleRatio(_aimAngleRatio), HAND_LERP_SPEED * Time.deltaTime);
+            _lerpedCloseHandPos = Vector2.Lerp(_lerpedCloseHandPos,CalculateTargetHandPos(), HAND_LERP_SPEED * Time.deltaTime);
         }
 
         protected virtual void SetPrimaryTransformLocation()

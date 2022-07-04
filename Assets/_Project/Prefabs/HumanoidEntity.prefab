@@ -4459,7 +4459,7 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 320
-  numHands: 2
+  numHands: 3
   <AimOrigin>k__BackingField: {fileID: 8819161053271429194}
   weaponInventory: []
   holdableInventory: []

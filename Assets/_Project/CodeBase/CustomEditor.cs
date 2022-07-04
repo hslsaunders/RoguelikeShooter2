@@ -6,7 +6,7 @@ namespace _Project.CodeBase
 {
     public class CustomEditor<T> : Editor where T : MonoBehaviour
     {
-        protected bool _debug = true;
+        protected bool debug = true;
         public T CastedTarget { get; private set; }
         protected virtual bool MakeInspectorDebugToggleable => true;
         
@@ -24,9 +24,9 @@ namespace _Project.CodeBase
         {
             base.OnInspectorGUI();
             if (MakeInspectorDebugToggleable)
-                AddBoolField(ref _debug, "Show Debugs");
+                AddBoolField(ref debug, "Show Debugs");
             
-            if (!MakeInspectorDebugToggleable || _debug)
+            if (!MakeInspectorDebugToggleable || debug)
                 DrawInspectorDebug();
 
             if (GUI.changed)

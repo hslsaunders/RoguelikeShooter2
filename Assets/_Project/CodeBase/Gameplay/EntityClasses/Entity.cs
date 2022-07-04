@@ -42,9 +42,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private float _localTargetAimAngle;
         private float _localLerpedAimAngle;
-
-        public const int DEFAULT_WEAPON_COUNT = 2;
-
+        
         private void Awake()
         {
             if (TryGetComponent(out EntityController controller))
@@ -123,6 +121,13 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             if (index >= weaponInventory.Count) return;
             
             EquipHoldable(weaponInventory[index]);
+        }
+
+        public void EquipHoldable(int index)
+        {
+            if (index >= holdableInventory.Count) return;
+            
+            EquipHoldable(holdableInventory[index]);
         }
 
         private void EquipHoldable(Holdable holdable)

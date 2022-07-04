@@ -43,6 +43,9 @@ namespace _Project.CodeBase.Player
             if (GameControls.EquipWeaponThree.IsPressed)
                 entity.EquipWeapon(2);
             
+            if (GameControls.EquipPrimaryHoldable.IsPressed)
+                entity.EquipHoldable(0);
+            
             if (GameControls.FirePrimary.IsHeld)
             {
                 entity.FirePrimary();

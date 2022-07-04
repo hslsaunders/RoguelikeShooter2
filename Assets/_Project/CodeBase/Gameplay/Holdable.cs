@@ -17,6 +17,7 @@ namespace _Project.CodeBase.Gameplay
         [NonSerialized] public readonly UnityEvent onFire = new UnityEvent();
         public BezierCurve holdCurve;
         [HideInInspector] public Vector2 localHoldPosition;
+        [HideInInspector] public Quaternion localHoldRotation;
         public bool HasSuperfluousHoldPivots => holdPivots.Length > numHandsRequired;
         public int NumSuperfluousHoldPivots => HasSuperfluousHoldPivots ? holdPivots.Length - numHandsRequired : 0;
         

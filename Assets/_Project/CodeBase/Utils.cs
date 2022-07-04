@@ -719,10 +719,10 @@ namespace _Project.CodeBase
             return v1.x * v2.x + v1.y * v2.y;
         }
         
-        public static bool LineSegmentIntersect(Vector2 p, Vector2 p2, Vector2 q, Vector2 q2, 
+        public static bool LineSegmentIntersect(in Vector2 p, in Vector2 p2, in Vector2 q, in Vector2 q2, 
             out Vector2 intersection, bool considerCollinearOverlapAsIntersect = false)
         {
-            intersection = new Vector2();
+            intersection = default;
 
             Vector2 r = p2 - p;
             Vector2 s = q2 - q;

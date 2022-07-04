@@ -20,6 +20,7 @@ namespace _Project.CodeBase
         public static readonly KeyBind EquipWeaponOne = new KeyBind(KeyCode.Alpha1);
         public static readonly KeyBind EquipWeaponTwo = new KeyBind(KeyCode.Alpha2);
         public static readonly KeyBind EquipWeaponThree = new KeyBind(KeyCode.Alpha3);
+        public static readonly KeyBind EquipPrimaryHoldable = new KeyBind(KeyCode.H);
 
         public static readonly KeyBind InteractUI = new KeyBind(KeyCode.Mouse0);
         public static readonly KeyBind CancelInteractUI = new KeyBind(KeyCode.Mouse1);
