@@ -6,10 +6,15 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
     public class EntityController : EntityComponent
     {
         public bool IsGrounded { get; private set; }
-        [HideInInspector] public Vector2 velocity;
+        public Vector2 Velocity { get; private set; }
+        public Vector2 gravityVelocity;
+        public Vector2 MovementVelocity { get; private set; }
         
-        private CharacterController _characterController;
+        private Rigidbody2D _rb;
+        private Collider2D _collider;
         private Vector3 _smoothVel;
+        
+        private Vector2 _groundNormal;
         private bool _wasGrounded;
         private bool _wasOnCeiling;
         private bool _isOnCeiling;
@@ -39,7 +44,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         protected override void Start()
         {
             base.Start();
-            TryGetComponent(out _characterController);
+            TryGetComponent(out _rb);
+            TryGetComponent(out _collider);
         }
 
         protected override void FixedUpdate()
@@ -47,18 +53,26 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             base.FixedUpdate();
             MovePlayerBasedOnInput();
         
-            IsGrounded = CheckSphereInHeight(GROUND_CHECK_HEIGHT, GROUND_CHECK_RADIUS);
+            IsGrounded = CheckSphereInHeight(GROUND_CHECK_HEIGHT, GROUND_CHECK_RADIUS, out RaycastHit2D groundHit);
 
-            _isOnCeiling = CheckSphereInHeight(CEILING_CHECK_HEIGHT, CEILING_CHECK_RADIUS);
-        
+            _groundNormal = groundHit.normal;
+            
+            _isOnCeiling = CheckSphereInHeight(CEILING_CHECK_HEIGHT, CEILING_CHECK_RADIUS, out RaycastHit2D ceilingHit);
+            
+            
             ManageJump();
         
             ManageFalling();
         
             // clamp velocity
+            
+            Debug.DrawRay(transform.position, gravityVelocity, Color.red);
+            Debug.DrawRay(transform.position, MovementVelocity, Color.green);
 
-            _characterController.Move(velocity * Time.fixedDeltaTime);
-            _characterController.transform.position = _characterController.transform.position.SetZ(0f);
+            Debug.Log($"Gravity: {gravityVelocity}, Movement: {MovementVelocity}");            
+            Velocity = MovementVelocity + gravityVelocity;
+            
+            _rb.velocity = Velocity;
         }
     
         private void ManageFalling()
@@ -67,23 +81,30 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             {
                 if (!IsGrounded && _wasGrounded)
                 {
-                    velocity.y = 0f;
+                    gravityVelocity.y = 0f;
                     _coyoteTimeRoutine = StartCoroutine(CoyoteTimeRoutine());
                 }
                 else if (IsGrounded)
-                    velocity.y = SLOPE_STICK_FORCE;
+                {
+                    gravityVelocity = SLOPE_STICK_FORCE * _groundNormal;
+                    Debug.Log("sticking to ground");
+                }
             }
 
-            if (velocity.y > 0f && _isOnCeiling && !_wasOnCeiling)
+            if (gravityVelocity.y > 0f && _isOnCeiling && !_wasOnCeiling)
             {
-                velocity.y = 0f;
+                gravityVelocity.y = 0f;
             }
 
-            if (velocity.y < 0f && _wasGrounded && !IsGrounded)
+            if (gravityVelocity.y < 0f && _wasGrounded && !IsGrounded)
             {
-                velocity.y = 0f;
+                gravityVelocity.y = 0f;
+                Debug.Log("resetting gravity");
             }
         
+            if (!IsGrounded)
+                gravityVelocity.y -= GRAVITY * Time.fixedDeltaTime;
+            
             _wasGrounded = IsGrounded;
             
             _wasOnCeiling = _isOnCeiling;
@@ -101,19 +122,17 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             float speed = MOVE_SPEED;
             if (entity.IsWalking)
                 speed *= WALK_SPEED_MULTIPLIER;
-            float yVel = velocity.y;
+            float yVel = MovementVelocity.y;
             Vector2 input = Utils.ClampVector(new Vector2(entity.moveInput.x, 0f), -Vector2.one, Vector2.one);
-            velocity = Vector3.SmoothDamp(velocity, input * speed, ref _smoothVel, .125f);
-            velocity.y = yVel;
-
-            velocity.y -= GRAVITY * Time.fixedDeltaTime;
+            MovementVelocity = Vector3.SmoothDamp(MovementVelocity, input * speed, ref _smoothVel, .125f);
+            MovementVelocity = MovementVelocity.SetY(yVel);
         }
     
         private void ManageJump()
         {
             if (_isJumpedQueued && (IsGrounded || _canCoyoteJump))
             {
-                velocity.y = JUMP_STRENGTH;
+                gravityVelocity = JUMP_STRENGTH * Vector2.up;
 
                 _isJumpedQueued = false;
                 _canCoyoteJump = false;
@@ -153,9 +172,18 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             _coyoteTimeRoutine = null;
         }
 
-        private bool CheckSphereInHeight(float height, float radius)
+        private bool CheckSphereInHeight(float height, float radius, out RaycastHit2D hit)
         {
-            return Physics.CheckSphere(transform.position + new Vector3(0f, height, 0f), radius, Layers.WorldMask);
+            bool aboveHalfOfHeight = height > HEIGHT / 2f;
+            float sideMultiplier = (aboveHalfOfHeight ? -1f : 1f);
+            float castDist = .1f;
+            float cushion = .05f;
+            hit = Physics2D.CircleCast(transform.position + 
+                                       new Vector3(0f, height + 
+                                                       castDist * sideMultiplier, 0f), radius,
+                aboveHalfOfHeight ? Vector2.up : Vector2.down, 
+                (castDist + cushion) * sideMultiplier, Layers.WorldMask);
+            return hit;
         }
 
         private void StopCoroutineIfNotNull(Coroutine coroutine)

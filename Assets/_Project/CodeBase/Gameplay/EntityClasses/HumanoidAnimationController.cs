@@ -176,7 +176,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         {
             base.ManageAnimatorValues();
             
-            float velocityRatio = entityController.velocity.x / EntityController.MOVE_SPEED;
+            float velocityRatio = entityController.MovementVelocity.x / EntityController.MOVE_SPEED;
             velocityRatio *= entity.FlipMultiplier;
 
             animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,
