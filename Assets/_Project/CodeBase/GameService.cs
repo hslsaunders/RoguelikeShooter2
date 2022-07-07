@@ -8,7 +8,7 @@ namespace _Project.CodeBase
     {
         private static Dictionary<Type, TService> _gameServices;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             _gameServices ??= new Dictionary<Type, TService>();
 

@@ -863,6 +863,9 @@ namespace _Project.CodeBase
             PointInsideRect(ScreenDims, ScreenDims/2f, pos);
 
         public static bool MouseInWindow() => ScreenContainsScreenPoint(Input.mousePosition);
+
+        public static Vector2Int FloorVector(this Vector2 vector) => new Vector2Int(Mathf.FloorToInt(vector.x),
+            Mathf.FloorToInt(vector.y));
     }
 
     public enum TextMod

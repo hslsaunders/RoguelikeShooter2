@@ -1,7 +1,8 @@
-﻿using UnityEditor;
+﻿using _Project.CodeBase.Gameplay.EntityClasses;
+using UnityEditor;
 using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay.EntityClasses
+namespace _Project.CodeBase.Editor
 {
     [CustomEditor(typeof(Entity))]
     [CanEditMultipleObjects]

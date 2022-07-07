@@ -1,8 +1,9 @@
-﻿using UnityEditor;
+﻿using _Project.CodeBase.Gameplay;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay
+namespace _Project.CodeBase.Editor
 {
     [CustomEditor(typeof(Weapon))]
     [CanEditMultipleObjects]

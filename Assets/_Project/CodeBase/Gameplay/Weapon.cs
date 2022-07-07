@@ -45,25 +45,12 @@ namespace _Project.CodeBase.Gameplay
             float spreadAngle = Random.Range(-spread, spread);
             Vector2 shootDir = Utils.RotateDirectionByAngle(-_shootTransform.up, spreadAngle);
             newProj.transform.right = shootDir;
-            Debug.DrawRay(_shootTransform.position, shootDir * 1f, Color.red, .5f);
+            //Debug.DrawRay(_shootTransform.position, shootDir * 1f, Color.red, .5f);
             _spreadEffect = Mathf.Clamp01(_spreadEffect + spreadGrowthRate);
             
             newProj.transform.eulerAngles = newProj.transform.eulerAngles.SetX(0f);
             newProj.transform.eulerAngles = newProj.transform.eulerAngles.SetY(0f);
             newProj.transform.position = _shootTransform.position;
         }
-        
-/*
-        public Vector2 GetHoldPosFromAimAngleRatio(float ratio) => holdCurve.GetWorldCurvePoint(ratio);
-
-        public Vector2 GetLocalHoldPosFromAimAngleRatio(float ratio)
-        {
-            Vector2 localCurvePos = holdCurve.GetLocalCurvePoint(ratio);
-            return localCurvePos;
-            //if (_holdCurve.originTransform == null)
-            //    return localCurvePos;
-            //return _holdCurve.originTransform.TransformPoint(localCurvePos);
-        }
-        */
     }
 }

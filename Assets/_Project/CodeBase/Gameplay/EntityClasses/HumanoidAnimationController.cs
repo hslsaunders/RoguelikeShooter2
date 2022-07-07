@@ -175,8 +175,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         protected override void ManageAnimatorValues()
         {
             base.ManageAnimatorValues();
-            
-            float velocityRatio = entityController.MovementVelocity.x / EntityController.MOVE_SPEED;
+
+            Vector2 movementVelocity = entityController.MovementVelocity;
+            float velocityRatio = movementVelocity.magnitude * Mathf.Sign(movementVelocity.x) / EntityController.MOVE_SPEED;
             velocityRatio *= entity.FlipMultiplier;
 
             animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,

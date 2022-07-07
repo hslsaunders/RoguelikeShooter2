@@ -54,7 +54,7 @@ namespace _Project.CodeBase.Gameplay
                 {
                     if (hit.collider.gameObject.TryGetComponent(out Rigidbody2D rb))
                     {
-                        rb.AddForceAtPosition(direction * (.5f * penetrationHealth), hit.point, ForceMode2D.Impulse);
+                        rb.AddForceAtPosition(direction * penetrationHealth, hit.point, ForceMode2D.Impulse);
                     }
                 }
 

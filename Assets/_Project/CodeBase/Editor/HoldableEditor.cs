@@ -1,10 +1,10 @@
-﻿using System.Diagnostics;
+﻿using _Project.CodeBase.Gameplay;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace _Project.CodeBase.Gameplay
+namespace _Project.CodeBase.Editor
 {
     [CustomEditor(typeof(Holdable))]
     [CanEditMultipleObjects]

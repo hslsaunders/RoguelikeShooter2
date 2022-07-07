@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Project.CodeBase.Player
 {
-    public class Player : MonoSingleton<Player>
+    public class PlayerManager : MonoSingleton<PlayerManager>
     {
         public Entity entity;
         private bool _controllingAim = true;

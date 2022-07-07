@@ -2,9 +2,9 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace _Project.CodeBase
+namespace _Project.CodeBase.Editor
 {
-    public class CustomEditor<T> : Editor where T : MonoBehaviour
+    public class CustomEditor<T> : UnityEditor.Editor where T : MonoBehaviour
     {
         protected bool debug = true;
         public T CastedTarget { get; private set; }
@@ -38,6 +38,11 @@ namespace _Project.CodeBase
         {
         }
 
+        protected void AddPositionHandle(ref Vector2 targetPoint)
+        {
+            targetPoint = Handles.PositionHandle(targetPoint, Quaternion.identity);
+        }
+        
         protected void AddCircleHandle(ref Vector2 targetPoint, ref float _debugSize)
         {
             _debugSize = Handles.RadiusHandle(Quaternion.identity, targetPoint, _debugSize);
