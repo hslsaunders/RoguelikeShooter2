@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using _Project.CodeBase.Navmesh;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -40,6 +42,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         [HideInInspector] public bool overriddenTriggerDownValue;
         [HideInInspector] public int numHandsInUse;
 
+        protected NavmeshManager navmeshManger;
+        
         private float _localTargetAimAngle;
         private float _localLerpedAimAngle;
         
@@ -53,6 +57,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         {
             if (weaponInventory.Count > 0)
                 InitializeStartingWeapons();
+
+            navmeshManger = NavmeshManager.Get();
         }
 
         private void InitializeStartingWeapons()
@@ -85,19 +91,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             //AimAngle = Mathf.Clamp(AimAngle, EquippedWeapons != null ? -EquippedWeapons.lowestAimAngle : -90f, 
             //    EquippedWeapons != null ? EquippedWeapons.highestAimAngle : 90f);
 
-            if (EquippedHoldables == null)
-                AimAngleRatio = .5f;
-            else
-            {
-                //AimAngleRatio =
-                //    Mathf.Clamp01(AimAngle.Remap01(-EquippedWeapons.lowestAimAngle, EquippedWeapons.highestAimAngle));
-                AimAngleRatio = AimAngle.Remap01(-90f, 90f);
-            }
-
-            IsWalking = GameControls.Walk.IsHeld;
-        
+            
+            //AimAngleRatio =
+            //    Mathf.Clamp01(AimAngle.Remap01(-EquippedWeapons.lowestAimAngle, EquippedWeapons.highestAimAngle));
+            AimAngleRatio = AimAngle.Remap01(-90f, 90f);
+            
             _graphics.transform.localScale = _graphics.transform.localScale.SetX(FacingLeft ? -1f : 1f);
-
 
             if (overrideTriggerDown)
             {
@@ -107,7 +106,35 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                     weapon.SetFireTriggerState(overriddenTriggerDownValue);
             }
         }
-        
+
+        public bool TryGetNearestGroundTile(out NavmeshNode node)
+        {
+            navmeshManger.TryGetNodeAtWorldPos(transform.position, out node);
+            if (node == null) return false;
+            
+            if (node.groundWalkable) return true;
+            if (navmeshManger.TryGetNodeAtGridPos(node.Up, out node) && node.groundWalkable) return true;
+            
+            for (int i = 0; i < 50; i++)
+            {
+                if (node != null && navmeshManger.TryGetNodeAtGridPos(node.Down, out node) && node.groundWalkable)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (!Application.isPlaying) return;
+
+            Handles.color = Color.cyan;
+            if (TryGetNearestGroundTile(out NavmeshNode groundNode))
+                Handles.DrawWireCube(navmeshManger.NodePosToWorldPos(groundNode.gridPos),
+                    navmeshManger.NodeDimensions);
+                    
+        }
+
         public void TakeDamage(float damage, GameObject hitObject, Vector2 location, Vector2 normal)
         {
             GameObject impactParticleSystem =

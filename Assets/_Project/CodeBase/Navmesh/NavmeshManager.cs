@@ -23,18 +23,21 @@ namespace _Project.CodeBase.Navmesh
         //[SerializeField] private Vector2Int _pathfindTestStart;
         //[SerializeField] private Vector2Int _pathfindTestEnd;
 
-        public Vector2Int pathFindStart;
-        public Vector2Int pathFindEnd;
-        
+        public bool testPathfinder;
+        public Vector2Int testPathFindStart;
+        public Vector2Int testPathFindEnd;
+        public bool isGroundUnit;
+        //public float heuristicMultipler = 1f;
+
         private Dictionary<Vector2Int, NavmeshRegion> _regions = new Dictionary<Vector2Int, NavmeshRegion>();
         private Dictionary<Vector2Int, NavmeshChunk> _chunks = new Dictionary<Vector2Int, NavmeshChunk>();
 
         public float RegionSize { get; private set; }
         public float ChunkSize { get; private set; }
-        public float nodeSize { get; private set; }
+        public float NodeSize { get; private set; }
         private PlayerManager _player;
-        private Vector2 nodeExtents;
-        private Vector2 nodeDimensions;
+        public Vector2 NodeDimensions { get; private set; }
+        public Vector2 NodeExtents { get; private set; }
         private PathFinder _testPathFinder;
 
         private void Start()
@@ -45,10 +48,16 @@ namespace _Project.CodeBase.Navmesh
 
         private void Update()
         {
-            if (_testPathFinder == null || _testPathFinder.start != pathFindStart ||
-                _testPathFinder.end != pathFindEnd)
+            if (testPathfinder && (_testPathFinder == null || _testPathFinder.Start != testPathFindStart ||
+                _testPathFinder.End != testPathFindEnd))// || Math.Abs(_testPathFinder.heuristicMultipler - heuristicMultipler) > .001f))
             {
-                _testPathFinder = new PathFinder(pathFindStart, pathFindEnd, this);
+                _testPathFinder = new PathFinder(testPathFindStart, testPathFindEnd, isGroundUnit, null);
+                //_testPathFinder.heuristicMultipler = heuristicMultipler;
+            }
+
+            foreach (NavmeshChunk chunk in _chunks.Values)
+            {
+                chunk.Tick();
             }
 
             //Vector2Int gridPos = GetNodeGridPos(Utils.WorldMousePos);
@@ -57,11 +66,11 @@ namespace _Project.CodeBase.Navmesh
 
         public void GenerateRegions()
         {
-            nodeSize = Tilemap.cellSize.x;
-            ChunkSize = NumTilesInChunkDim * nodeSize;
+            NodeSize = Tilemap.cellSize.x;
+            ChunkSize = NumTilesInChunkDim * NodeSize;
             RegionSize = numChunksInRegionDim * ChunkSize;
-            nodeDimensions = new Vector2(nodeSize, nodeSize);
-            nodeExtents = new Vector2(nodeSize / 2f, nodeSize / 2f);
+            NodeDimensions = new Vector2(NodeSize, NodeSize);
+            NodeExtents = new Vector2(NodeSize / 2f, NodeSize / 2f);
 
             NavmeshRegion startingRegion = GenRegion(_player.entity.transform.position);
 
@@ -115,10 +124,8 @@ namespace _Project.CodeBase.Navmesh
         public Vector2Int GetRegionGridPos(Vector2 pos) => (pos / RegionSize).FloorVector();
         public Vector2Int GetChunkGridPos(Vector2 pos) => (pos / ChunkSize).FloorVector();
         public NavmeshRegion GetRegion(Vector2 pos) => _regions[GetRegionGridPos(pos)];
-        public Vector2Int GetNodeGridPos(Vector2 pos) => (pos / nodeSize).FloorVector();
-        public Vector2 GetWorldPosFromGridPos(Vector2Int gridPos) => gridPos * nodeDimensions;
-
-        public bool TryGetNodeAtPos(Vector2 pos, out NavmeshNode node)
+        public Vector2Int GetNodeGridPos(Vector2 pos) => (pos / NodeSize).FloorVector();
+        public bool TryGetNodeAtWorldPos(Vector2 pos, out NavmeshNode node)
         {
             node = null;
             if (TryGetChunkFromWorldPos(pos, out NavmeshChunk chunk))
@@ -130,6 +137,20 @@ namespace _Project.CodeBase.Navmesh
             return false;
         }
 
+        public bool TryGetNodeAtGridPos(Vector2Int pos, out NavmeshNode node)
+        {
+            node = null;
+            if (TryGetChunkFromNodePos(pos, out NavmeshChunk chunk))
+            {
+                //Debug.Log($"GridPos{pos}, chunk: {chunk.GridPos}");
+                node = chunk.GetNode(pos);
+                return true;
+            }
+
+            return false;
+        }
+
+        
         public NavmeshNode GetNodeAtGridPos(Vector2Int pos)
         {
             NavmeshNode node = null;
@@ -144,7 +165,7 @@ namespace _Project.CodeBase.Navmesh
 
         public bool TryGetChunkFromWorldPos(Vector2 pos, out NavmeshChunk chunk)
         {
-            return TryGetChunkFromNodePos(GetChunkGridPos(pos), out chunk);
+            return TryGetChunkFromChunkPos(GetChunkGridPos(pos), out chunk);
         }
 
         public bool TryGetChunkFromNodePos(Vector2Int pos, out NavmeshChunk chunk)
@@ -164,13 +185,20 @@ namespace _Project.CodeBase.Navmesh
         public bool IsWalkableAtPos(Vector2Int pos)
         {
             NavmeshNode node = GetNodeAtGridPos(pos);
-            //Debug.Log($"pos: {pos}, walkable: {node.walkable}");
-            return node != null && node.walkable;
+            //Debug.Log($"pos: {pos}, groundWalkable: {node.groundWalkable}");
+            return node != null && node.groundWalkable;
+        }
+
+        public bool HasTileAtPos(Vector2Int pos)
+        {
+            NavmeshNode node = GetNodeAtGridPos(pos);
+            //Debug.Log($"pos: {pos}, groundWalkable: {node.groundWalkable}");
+            return node != null && node.hasTile;
         }
 
         public Vector2Int GetChunkGridPosFromNodeGridPos(Vector2Int pos) => 
             ((Vector2)pos / NumTilesInChunkDim).FloorVector();
-        private Vector2 NodePosToWorldPos(Vector2Int pos) => (Vector2)pos * nodeSize + nodeExtents;
+        public Vector2 NodePosToWorldPos(Vector2Int pos) => (Vector2)pos * NodeSize + NodeExtents;
 
         public void StepPathFinder()
         {
@@ -198,9 +226,11 @@ namespace _Project.CodeBase.Navmesh
                 DebugNodes(style);
             }
 
+            if (!testPathfinder) return;
+            
             Handles.color = Color.magenta;
-            Handles.DrawWireCube(NodePosToWorldPos(pathFindStart), nodeDimensions);
-            Handles.DrawWireCube(NodePosToWorldPos(pathFindEnd), nodeDimensions);
+            Handles.DrawWireCube(NodePosToWorldPos(testPathFindStart), NodeDimensions);
+            Handles.DrawWireCube(NodePosToWorldPos(testPathFindEnd), NodeDimensions);
 
             if (_testPathFinder == null)
             {
@@ -253,14 +283,17 @@ namespace _Project.CodeBase.Navmesh
                     foreach (NavmeshNode node in chunk.nodes)
                     {
                         index++;
-                        if (!node.walkable && _showOnlyWalkable) continue;
+                        if (!node.groundWalkable && _showOnlyWalkable) continue;
                         Vector2 worldPos = NodePosToWorldPos(node.gridPos);
                         if (index == 0 || index == chunk.nodes.Length * chunk.nodes.Length - 1)
                             Handles.Label(worldPos, $"{node.gridPos}", style);
 
-                        Handles.color = node.walkable ? Color.yellow : Color.red;
+                        Handles.color = node.groundWalkable ? Color.yellow : Color.red;
 
-                        Handles.DrawWireCube(worldPos, new Vector3(nodeSize, nodeSize));
+                        //if (node.hasTile)
+                        //    Handles.DrawWireDisc(worldPos, Vector3.back, NodeSize / 2f);
+                        
+                        Handles.DrawWireCube(worldPos, new Vector3(NodeSize, NodeSize));
                     }
                 }
             }

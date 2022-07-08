@@ -6,14 +6,14 @@ namespace _Project.CodeBase.Navmesh
     {
         public readonly Vector2Int gridPos;
         public readonly float movementCost;
-        public readonly float distanceCost;
+        public readonly float heuristicCost;
         public readonly PathNode parent;
 
-        public PathNode(Vector2Int gridPos, float movementCost, float distanceCost, PathNode parent)
+        public PathNode(Vector2Int gridPos, float movementCost, float heuristicCost, PathNode parent)
         {
             this.gridPos = gridPos;
             this.movementCost = movementCost;
-            this.distanceCost = distanceCost;
+            this.heuristicCost = heuristicCost;
             this.parent = parent;
         }
     }

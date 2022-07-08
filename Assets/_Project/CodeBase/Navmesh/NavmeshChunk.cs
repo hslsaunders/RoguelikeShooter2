@@ -48,17 +48,18 @@ namespace _Project.CodeBase.Navmesh
                 NavmeshNode node = new NavmeshNode
                 {
                     gridPos = gridPos,
-                    walkable = walkable
+                    groundWalkable = walkable,
+                    hasTile = tileAtPos
                 };
                 nodes[x, y] = node;
                 
             }
-            
         }
 
         public void Tick()
         {
-            
+            //Vector2 bottomLeft = _manager.NodePosToWorldPos(_bottomLeftNode);
+           // Debug.DrawLine(bottomLeft - _manager.NodeExtents, bottomLeft + _manager.NodeExtents, Color.red);
         }
     }
 }

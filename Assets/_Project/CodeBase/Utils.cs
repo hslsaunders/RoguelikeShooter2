@@ -866,6 +866,13 @@ namespace _Project.CodeBase
 
         public static Vector2Int FloorVector(this Vector2 vector) => new Vector2Int(Mathf.FloorToInt(vector.x),
             Mathf.FloorToInt(vector.y));
+
+        public static T Pop<T>(this List<T> list, int index)
+        {
+            T element = list[index];
+            list.RemoveAt(index);
+            return element;
+        }
     }
 
     public enum TextMod

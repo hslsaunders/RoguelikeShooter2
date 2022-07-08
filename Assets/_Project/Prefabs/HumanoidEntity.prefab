@@ -4420,6 +4420,7 @@ GameObject:
   - component: {fileID: 8819161054966071190}
   - component: {fileID: 5785714787376497669}
   - component: {fileID: 7518779831732601723}
+  - component: {fileID: 4206675626662035215}
   m_Layer: 7
   m_Name: HumanoidEntity
   m_TagString: Untagged
@@ -4482,6 +4483,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fc85eb086715d74c96f193d8fb79ac9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _disablePhysics: 0
   gravityVelocity: {x: 0, y: 0}
 --- !u!114 &8819161054966071191
 MonoBehaviour:
@@ -4657,6 +4659,32 @@ CapsuleCollider2D:
   m_Offset: {x: -0.00088089705, y: 0.925}
   m_Size: {x: 0.18780157, y: 1.85}
   m_Direction: 0
+--- !u!61 &4206675626662035215
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8819161054966071185}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0.8496678}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.20248954, y: 1.7}
+  m_EdgeRadius: 0
 --- !u!1 &8819161055037606439
 GameObject:
   m_ObjectHideFlags: 0

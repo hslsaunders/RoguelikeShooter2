@@ -31,7 +31,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         public const float MOVE_SPEED = 7f;
         public const float WALK_SPEED_MULTIPLIER = .33f;
-        public const float HEIGHT = 1.85f;
+        public const float HEIGHT = 1.7f;
         private const float RADIUS = .1f + .05f;
         public const float SIZE = .2f;
         public const float MAX_SLOPE_ANGLE = 50f;
@@ -48,8 +48,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private const float GROUND_CHECK_RADIUS = 0.1f;
 
         private const float CIRCLE_GROUND_CHECK_HEIGHT_FROM_GROUND = GROUND_CHECK_RADIUS;
-        //private const float CEILING_CHECK_RADIUS = RADIUS - .02f;
-        //private const float CEILING_CHECK_HEIGHT = HEIGHT - CEILING_CHECK_RADIUS + .025f;
+        private const float CEILING_CHECK_RADIUS = RADIUS - .02f;
+        private const float CEILING_CHECK_HEIGHT = HEIGHT - CEILING_CHECK_RADIUS + .025f;
 
         protected override void Start()
         {
@@ -87,7 +87,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             if (!IsGrounded || _hasRecentlyJumped)
                 _groundNormal = Vector2.up;
             
-            //_isOnCeiling = CheckSphereInHeight(CEILING_CHECK_HEIGHT, CEILING_CHECK_RADIUS) > 0;
+            _isOnCeiling = 
+                CheckBoxInHeight(HEIGHT - GROUND_CHECK_HEIGHT_FROM_FEET, 
+                    GROUND_CHECK_WIDTH, GROUND_CHECK_HEIGHT) > 0;
 
             ManageJump();
         

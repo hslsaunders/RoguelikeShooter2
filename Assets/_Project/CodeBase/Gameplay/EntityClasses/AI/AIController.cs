@@ -6,6 +6,13 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.AI
     {
         private AIBehavior _aiBehavior;
 
+        protected override void Start()
+        {
+            base.Start();
+            
+            SetState(new ChaseTargetBehavior());
+        }
+
         public void SetState(AIBehavior behavior)
         {
             _aiBehavior?.OnExit();
@@ -19,8 +26,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.AI
         protected override void Update()
         {
             base.Update();
-            
-            _aiBehavior.Tick(Time.deltaTime);
+
+            _aiBehavior?.Tick(Time.deltaTime);
         }
     }
 }

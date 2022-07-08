@@ -16,18 +16,20 @@ namespace _Project.CodeBase.Editor
         {
             base.OnSceneGUI();
 
+            if (!CastedTarget.testPathfinder) return;
+            
             AddPositionHandle(ref pathFindStart);
             AddPositionHandle(ref pathFindEnd);
 
             if (GUI.changed)
             {
-                CastedTarget.pathFindStart = CastedTarget.GetNodeGridPos(pathFindStart);
-                CastedTarget.pathFindEnd = CastedTarget.GetNodeGridPos(pathFindEnd);
+                CastedTarget.testPathFindStart = CastedTarget.GetNodeGridPos(pathFindStart);
+                CastedTarget.testPathFindEnd = CastedTarget.GetNodeGridPos(pathFindEnd);
             }
             else
             {
-                pathFindStart = CastedTarget.GetWorldPosFromGridPos(CastedTarget.pathFindStart);
-                pathFindEnd = CastedTarget.GetWorldPosFromGridPos(CastedTarget.pathFindEnd);
+                pathFindStart = CastedTarget.NodePosToWorldPos(CastedTarget.testPathFindStart);
+                pathFindEnd = CastedTarget.NodePosToWorldPos(CastedTarget.testPathFindEnd);
             }
         }
     }
