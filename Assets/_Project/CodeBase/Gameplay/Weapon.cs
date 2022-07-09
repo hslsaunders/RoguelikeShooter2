@@ -10,7 +10,7 @@ namespace _Project.CodeBase.Gameplay
         [Range(0f, 3f)] public float recoilStrength;
         [Range(0f, 90f)] public float maxSpread;
         [Range(0f, 1f)] public float spreadGrowthRate;
-        [HideInInspector] public LayerMask hitMask;
+        [HideInInspector] public int teamId;
         public float Spread => maxSpread * _spreadEffect; 
         public float minDistToAimPivot;
         private float _spreadEffect = 0f;
@@ -39,7 +39,7 @@ namespace _Project.CodeBase.Gameplay
         public override void Fire()
         {
             Projectile newProj = Instantiate(_projectilePrefab).GetComponent<Projectile>();
-            newProj.hitmask = hitMask;
+            newProj.teamId = teamId;
 
             float spread = Spread;
             float spreadAngle = Random.Range(-spread, spread);

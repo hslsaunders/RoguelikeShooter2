@@ -214,14 +214,14 @@ MonoBehaviour:
     controlPoints:
     - point: {x: 0.37056983, y: -0.00000009647067}
       weight: 1
+  localHoldPosition: {x: 0, y: 0}
+  localHoldRotation: {x: 0, y: 0, z: 0, w: 0}
   _projectilePrefab: {fileID: 1478514079494431033, guid: baff7f5dfaa4c384499651b1cac2fdc4, type: 3}
   _shootTransform: {fileID: 6120054422867354785}
   recoilStrength: 1.25
   maxSpread: 7.5
   spreadGrowthRate: 0
-  hitMask:
-    serializedVersion: 2
-    m_Bits: 0
+  teamId: 0
   minDistToAimPivot: 0.20725
 --- !u!1 &5635956087578123132
 GameObject:

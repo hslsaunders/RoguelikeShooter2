@@ -4,13 +4,15 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.AI
 {
     public class AIController : EntityComponent
     {
+        public Transform visionSourceTransform;
         private AIBehavior _aiBehavior;
 
         protected override void Start()
         {
             base.Start();
             
-            SetState(new ChaseTargetBehavior());
+            //SetState(new ChaseTargetBehavior(this));
+            SetState(new PatrolBehavior(this));
         }
 
         public void SetState(AIBehavior behavior)

@@ -31,9 +31,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         public const float MOVE_SPEED = 7f;
         public const float WALK_SPEED_MULTIPLIER = .33f;
-        public const float HEIGHT = 1.7f;
         private const float RADIUS = .1f + .05f;
-        public const float SIZE = .2f;
         public const float MAX_SLOPE_ANGLE = 50f;
         private const float GRAVITY = 15f;
         private const float JUMP_STRENGTH = 6.5f;
@@ -42,14 +40,14 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private const float SLOPE_STICK_FORCE = -5f;
         private const float HAS_RECENTLY_JUMPED_DURATION = .05f;
         private const float GROUND_CHECK_CUSHION = .0125f;
-        private const float GROUND_CHECK_HEIGHT_FROM_FEET = SIZE / 4f;
-        private const float GROUND_CHECK_HEIGHT = SIZE / 2f + GROUND_CHECK_CUSHION;
-        private const float GROUND_CHECK_WIDTH = SIZE;
+        private const float GROUND_CHECK_HEIGHT_FROM_FEET = Entity.WIDTH / 4f;
+        private const float GROUND_CHECK_HEIGHT = Entity.WIDTH / 2f + GROUND_CHECK_CUSHION;
+        private const float GROUND_CHECK_WIDTH = Entity.WIDTH;
         private const float GROUND_CHECK_RADIUS = 0.1f;
 
         private const float CIRCLE_GROUND_CHECK_HEIGHT_FROM_GROUND = GROUND_CHECK_RADIUS;
         private const float CEILING_CHECK_RADIUS = RADIUS - .02f;
-        private const float CEILING_CHECK_HEIGHT = HEIGHT - CEILING_CHECK_RADIUS + .025f;
+        private const float CEILING_CHECK_HEIGHT = Entity.HEIGHT - CEILING_CHECK_RADIUS + .025f;
 
         protected override void Start()
         {
@@ -61,6 +59,13 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
+
+            if (_disablePhysics)
+            {
+                _rb.velocity = Vector2.zero;
+                return;
+            }
+            
             MovePlayerBasedOnInput();
 
             int groundHits = CheckBoxInHeight(GROUND_CHECK_HEIGHT_FROM_FEET, 
@@ -88,7 +93,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 _groundNormal = Vector2.up;
             
             _isOnCeiling = 
-                CheckBoxInHeight(HEIGHT - GROUND_CHECK_HEIGHT_FROM_FEET, 
+                CheckBoxInHeight(Entity.HEIGHT - GROUND_CHECK_HEIGHT_FROM_FEET, 
                     GROUND_CHECK_WIDTH, GROUND_CHECK_HEIGHT) > 0;
 
             ManageJump();
@@ -103,8 +108,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             //Debug.Log($"Gravity: {gravityVelocity}, Movement: {MovementVelocity}");            
             Velocity = MovementVelocity + gravityVelocity;
             
-            if (!_disablePhysics)
-                _rb.velocity = Velocity;
+            
+            _rb.velocity = Velocity;
         }
 
         private void ManageFalling()
@@ -211,7 +216,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private RaycastHit2D[] hits = new RaycastHit2D[4];
         private int CheckSphereInHeight(float height, float radius)
         {
-            bool aboveHalfOfHeight = height > HEIGHT / 2f;
+            bool aboveHalfOfHeight = height > Entity.HEIGHT / 2f;
             float sideMultiplier = aboveHalfOfHeight ? -1f : 1f;
             float castDist = .1f;
             float cushion = .05f;
@@ -230,7 +235,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private const float CAST_DISTANCE = CAST_START_SHIFT + CUSHION;
         private int CheckBoxInHeight(float height, float castWidth, float castHeight)
         {
-            bool aboveHalfOfHeight = height > HEIGHT / 2f;
+            bool aboveHalfOfHeight = height > Entity.HEIGHT / 2f;
             float sideMultiplier = aboveHalfOfHeight ? -1f : 1f;
 
             Vector2 start = transform.position + new Vector3(0f, height + CAST_START_SHIFT * sideMultiplier, 0f);

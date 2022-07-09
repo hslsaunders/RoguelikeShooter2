@@ -1,4 +1,5 @@
 ﻿using System;
+using _Project.CodeBase.Gameplay.EntityClasses;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,15 +15,23 @@ namespace _Project.CodeBase.Gameplay
         [SerializeField] protected bool _fullAuto;
         [SerializeField] protected float _fireDelay;
         [Range(.1f, 3f)] public float weight;
-        [NonSerialized] public readonly UnityEvent onFire = new UnityEvent();
         public BezierCurve holdCurve;
+        [NonSerialized] public readonly UnityEvent onFire = new UnityEvent();
         [HideInInspector] public Vector2 localHoldPosition;
         [HideInInspector] public Quaternion localHoldRotation;
+        public HoldableAction CurrentAction { get; private set; }
+        public bool CanFire { get; private set; }
         public bool HasSuperfluousHoldPivots => holdPivots.Length > numHandsRequired;
         public int NumSuperfluousHoldPivots => HasSuperfluousHoldPivots ? holdPivots.Length - numHandsRequired : 0;
         
         private float _lastFireTime;
         private bool _triggerDown;
+
+        protected virtual void Start()
+        {
+            CanFire = true;
+        }
+
         private void OnValidate()
         {
             if (_fireDelay <= 0f)
@@ -33,14 +42,21 @@ namespace _Project.CodeBase.Gameplay
 
         protected virtual void Update() {}
 
+        protected void SetHoldableAction(HoldableAction action)
+        {
+            if (CurrentAction != null)
+                return;
 
+            CurrentAction = action; 
+        }
+        
         public void SetFireTriggerState(bool down)
         {
             if (_triggerDown && down && !_fullAuto) return;
             
             _triggerDown = down;
 
-            if (!_triggerDown || Time.time < _lastFireTime + _fireDelay) return;
+            if (!_triggerDown || Time.time < _lastFireTime + _fireDelay || !CanFire) return;
 
             onFire.Invoke();
 

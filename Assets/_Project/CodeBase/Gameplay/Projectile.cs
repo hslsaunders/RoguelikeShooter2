@@ -1,5 +1,7 @@
 ﻿using _Project.CodeBase.Gameplay.EntityClasses;
 using UnityEngine;
+using UnityEngine.Analytics;
+using UnityEngine.ProBuilder.MeshOperations;
 
 namespace _Project.CodeBase.Gameplay
 {
@@ -7,7 +9,7 @@ namespace _Project.CodeBase.Gameplay
     {
         [SerializeField] private float _speed;
         [SerializeField] private float _radius;
-        public LayerMask hitmask;
+        public int teamId;
 
         private float penetrationHealth = 1f;
         private bool _queuedToDestroy;
@@ -37,18 +39,20 @@ namespace _Project.CodeBase.Gameplay
 
             if (_queuedToDestroy) return;
             
-            RaycastHit2D hit = Physics2D.CircleCast(start, _radius, direction, distance, hitmask);
+            RaycastHit2D hit = Physics2D.CircleCast(start, _radius, direction, distance, Layers.ProjectileMask);
             if (hit)
             {
                 float angleWithSurface = 90f - Vector2.Angle(hit.normal, -direction);
 
                 float surfaceStrength = .5f;
-                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Enemy") ||
-                    hit.collider.gameObject.layer == LayerMask.NameToLayer("Player"))
+                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Entity"))
                 {
+                    Entity hitEntity = hit.collider.gameObject.GetComponentInParent<Entity>();
+                    if (hitEntity.teamId == teamId && teamId != -1)
+                        return;
+                    
+                    hitEntity.TakeDamage(0f, hit.collider.gameObject, hit.point, hit.normal);
                     surfaceStrength = .8f;
-                    hit.collider.gameObject.GetComponentInParent<Entity>()
-                        .TakeDamage(0f, hit.collider.gameObject, hit.point, hit.normal);
                 }
                 else if (hit.collider.gameObject.layer == LayerMask.NameToLayer("World"))
                 {

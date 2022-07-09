@@ -41,7 +41,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.AI
                 }
             }
 
-            entity.AimTarget = _targetEntity.transform.position + new Vector3(0f, EntityController.HEIGHT / 2f);
+            entity.AimTarget = _targetEntity.transform.position + new Vector3(0f, Entity.HEIGHT / 2f);
 
             if (_path.Count > 0)
             {
@@ -70,6 +70,10 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.AI
             _path = new Stack<Vector2>(_pathPoints);
             
             SelectNextPathPoint();
+        }
+
+        public ChaseTargetBehavior(AIController controller) : base(controller)
+        {
         }
     }
 }

@@ -62,8 +62,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             //float aimRatio = 0f;//_baseEntityController.AimAngleRatio;//_entityController.AimAngleRatio.Remap(0f, 1f, -1f, 1f);
 
             float targetTorsoOffsetY = 0f;
-            if (Physics.Raycast(transform.position + new Vector3(0f, EntityController.HEIGHT / 2f),
-                Vector3.down, out RaycastHit hitInfo, EntityController.HEIGHT / 2f + .05f, Layers.WorldMask))
+            if (Physics.Raycast(transform.position + new Vector3(0f, Entity.HEIGHT / 2f),
+                Vector3.down, out RaycastHit hitInfo, Entity.HEIGHT / 2f + .05f, Layers.WorldMask))
             {
                 float terrainOffset = Mathf.Abs(90 - Utils.DirectionToAngle(hitInfo.normal))
                     .Remap(0f, 90f, 0f, -TORSO_TERRAIN_OFFSET);

@@ -10,7 +10,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
     public class Entity : MonoBehaviour
     {
         [SerializeField] private GameObject _graphics;
-        public LayerMask hitMask;
+        public int teamId;
         public int numHands;
         [field: SerializeField] public Transform AimOrigin { get; private set; }
         public bool IsWalking { get; private set; }
@@ -47,6 +47,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private float _localTargetAimAngle;
         private float _localLerpedAimAngle;
         
+        public const float HEIGHT = 1.7f;
+        public const float WIDTH = .2f;
+
         private void Awake()
         {
             if (TryGetComponent(out EntityController controller))
@@ -55,6 +58,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private void Start()
         {
+            Teams.AddNewTeamMember(this);
+
             if (weaponInventory.Count > 0)
                 InitializeStartingWeapons();
 
@@ -123,6 +128,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
             return false;
         }
+
+        public Vector2 GetCenterOfEntity => transform.position + (transform.up * HEIGHT / 2f);
+        public Bounds EntityBounds => new Bounds(GetCenterOfEntity, new Vector3(WIDTH, HEIGHT, 0f));
 
         private void OnDrawGizmos()
         {
@@ -214,7 +222,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private void SetUpWeapon(Weapon weapon, bool addingWeapon)
         {
-            weapon.hitMask = addingWeapon ? hitMask : (LayerMask) 0;
+            weapon.teamId = addingWeapon ? teamId : -1;
         }
         
         public void FirePrimary()
