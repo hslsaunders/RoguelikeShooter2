@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using _Project.CodeBase.Gameplay.HoldableClasses;
 using _Project.CodeBase.Navmesh;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace _Project.CodeBase.Gameplay.EntityClasses
 {
@@ -11,7 +11,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
     {
         [SerializeField] private GameObject _graphics;
         public int teamId;
-        public int numHands;
         [field: SerializeField] public Transform AimOrigin { get; private set; }
         public bool IsWalking { get; private set; }
         public bool FacingLeft { get; private set; }
@@ -28,10 +27,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         public int FlipMultiplier => FacingLeft ? -1 : 1;
         public Vector2 HorizontalFlipMultiplier => new Vector2(FacingLeft ? -1 : 1, 1f);
         public float AimAngle { get; private set; }
-        public int NumAvailableHands => numHands - numHandsInUse;
-        public int MinNumHandsForEquippedHoldable => EquippedHoldables.Sum(holdable => holdable.numHandsRequired);
+        public int MinNumHandsForEquippedHoldables => EquippedHoldables.Sum(holdable => holdable.numHandsRequired);
         public EntityController Controller { get; private set; }
-        public UnityAction OnEquipHoldable;
+        private EntityAnimationController _animationController;
         public readonly List<Holdable> EquippedHoldables = new List<Holdable>();
         public List<Weapon> weaponInventory;
         public List<Holdable> holdableInventory;
@@ -40,7 +38,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         [HideInInspector] public Vector2 moveInput;
         [HideInInspector] public bool overrideTriggerDown;
         [HideInInspector] public bool overriddenTriggerDownValue;
-        [HideInInspector] public int numHandsInUse;
 
         protected NavmeshManager navmeshManger;
         
@@ -54,6 +51,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         {
             if (TryGetComponent(out EntityController controller))
                 Controller = controller;
+            TryGetComponent(out _animationController);
         }
 
         private void Start()
@@ -73,7 +71,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 SetUpWeapon(weapon, true);
             }
 
-            EquipWeapon(0);
+            //EquipWeapon(0);
         }
 
         private void Update()
@@ -110,6 +108,11 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 foreach (Weapon weapon in weaponInventory)
                     weapon.SetFireTriggerState(overriddenTriggerDownValue);
             }
+        }
+
+        private void OnDestroy()
+        {
+            Teams.RemoveTeamMember(this);
         }
 
         public bool TryGetNearestGroundTile(out NavmeshNode node)
@@ -167,43 +170,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private void EquipHoldable(Holdable holdable)
         {
-            if (EquippedHoldables.Contains(holdable)) return;
-            
-            if (numHands < holdable.numHandsRequired)
-            {
-                Debug.Log("NOT ENOUGH HANDS");
-                return;
-            }
-            
-            while (NumAvailableHands < holdable.numHandsRequired)
-            {
-                Holdable primaryHoldable = EquippedHoldables[0];
-                UnequipHoldable(primaryHoldable);
-            }
-            
-            holdable.gameObject.SetActive(true);
-            EquippedHoldables.Add(holdable);
-            OnEquipHoldable.Invoke();
-
-            numHandsInUse += holdable.numHandsRequired;
-        }
-
-        private void UnequipWeapon(int index)
-        {
-            if (index >= EquippedHoldables.Count)
-            {
-                Debug.Log("look out ya doof");
-                return;
-            }
-
-            UnequipHoldable(EquippedHoldables[index]);
-        }
-        private void UnequipHoldable(Holdable holdable)
-        {
-            holdable.SetFireTriggerState(false);
-            holdable.gameObject.SetActive(false);
-            EquippedHoldables.Remove(holdable);
-            numHandsInUse -= holdable.numHandsRequired;
+            _animationController.EquipHoldable(holdable);
+            //holdable.gameObject.SetActive(true);
+           // EquippedHoldables.Add(holdable);
         }
 
         public void AddWeapon(Weapon weapon)

@@ -1,11 +1,12 @@
 ﻿using _Project.CodeBase.Gameplay;
+using _Project.CodeBase.Gameplay.HoldableClasses;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace _Project.CodeBase.Editor
 {
-    [CustomEditor(typeof(Weapon))]
+    [CustomEditor(typeof(Weapon), true)]
     [CanEditMultipleObjects]
     public class WeaponEditor : HoldableEditor
     {

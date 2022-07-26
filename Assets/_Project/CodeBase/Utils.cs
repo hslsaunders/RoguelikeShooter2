@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -867,11 +869,40 @@ namespace _Project.CodeBase
         public static Vector2Int FloorVector(this Vector2 vector) => new Vector2Int(Mathf.FloorToInt(vector.x),
             Mathf.FloorToInt(vector.y));
 
-        public static T Pop<T>(this List<T> list, int index)
+        public static bool IsOfEnumType<T>(this T enumerable, params T[] types) where T : Enum
         {
-            T element = list[index];
-            list.RemoveAt(index);
-            return element;
+            foreach (T type in types)
+            {
+                if (Equals(enumerable, type))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static Vector2 FlipX(this Vector2 vector) => FlipX((Vector3)vector);
+        public static Vector2 FlipY(this Vector2 vector) => FlipY((Vector3)vector);
+        public static Vector3 FlipX(this Vector3 vector) => new Vector3(vector.x * -1f, vector.y, vector.z);
+        public static Vector3 FlipY(this Vector3 vector) => new Vector3(vector.x, vector.y * -1f, vector.z);
+        public static Vector3 FlipZ(this Vector3 vector) => new Vector3(vector.x, vector.y * -1f, vector.z);
+
+        public static void DebugAll<T>(this List<T> list, Func<T, string> property)
+        {
+            foreach (T element in list)
+                Debug.Log(property(element));
+        }
+
+        public static string GetEnumeratedString<T>(this List<T> list, Func<T, string> property)
+        {
+            string returnStr = "";
+            foreach (var (element, index) in list.WithIndex())
+            {
+                returnStr += property(element);
+                if (index != list.Count - 1)
+                    returnStr += ", ";
+            }
+
+            return returnStr;
         }
     }
 

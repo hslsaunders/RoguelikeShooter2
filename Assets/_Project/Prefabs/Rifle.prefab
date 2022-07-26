@@ -195,9 +195,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numHandsRequired: 2
+  numHandsCurrentlyAssigned: 0
   holdPivots:
   - {fileID: 4888179183123268405}
   - {fileID: 4858672646155342125}
+  EquipAction:
+    numHandsRequired: 2
+    hasBeenAttemptedToStart: 0
+    OnFinishAction:
+      m_PersistentCalls:
+        m_Calls: []
+    holdable: {fileID: 4858672648218339410}
+    handOrientations: []
+    isQueued: 0
+  UnequipAction:
+    numHandsRequired: 1
+    hasBeenAttemptedToStart: 0
+    OnFinishAction:
+      m_PersistentCalls:
+        m_Calls: []
+    holdable: {fileID: 4858672648218339410}
+    handOrientations: []
+    isQueued: 0
   highestAimAngle: 70
   lowestAimAngle: 70
   _fullAuto: 1

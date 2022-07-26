@@ -19,6 +19,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 _teamDictionary.Add(entity.teamId, new EntityTeam(entity.teamId));
             _teamDictionary[entity.teamId].members.Add(entity);
         }
+        
+        public static void RemoveTeamMember(Entity entity)
+        {
+            if (_teamDictionary.TryGetValue(entity.teamId, out EntityTeam team))
+                team.members.Remove(entity);
+        }
 
         public static List<Entity> GetEnemyOfTeamIdList(int teamId)
         {

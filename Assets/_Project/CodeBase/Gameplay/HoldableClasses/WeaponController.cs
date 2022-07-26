@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using _Project.CodeBase.Gameplay.EntityClasses;
 using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay.EntityClasses
+namespace _Project.CodeBase.Gameplay.HoldableClasses
 {
     public class WeaponController : HoldableController
     {

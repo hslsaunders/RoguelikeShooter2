@@ -1,4 +1,4 @@
-﻿using _Project.CodeBase.Gameplay;
+﻿using _Project.CodeBase.Gameplay.HoldableClasses;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -6,7 +6,7 @@ using Debug = UnityEngine.Debug;
 
 namespace _Project.CodeBase.Editor
 {
-    [CustomEditor(typeof(Holdable))]
+    [CustomEditor(typeof(Holdable), true)]
     [CanEditMultipleObjects]
     public class HoldableEditor : CustomEditor<Holdable>
     {
@@ -92,13 +92,6 @@ namespace _Project.CodeBase.Editor
             float angle = oneEnd.y > 0f
                 ? CastedTarget.highestAimAngle
                 : CastedTarget.lowestAimAngle;
-            /*
-            
-            float maxY = oneEnd.x * Mathf.Tan(angle * Mathf.Deg2Rad);
-
-            if (_clampToInsideAimRange && oneEnd.x > 0f && angle < 90f - .0001f)
-                oneEnd.y = Mathf.Min(Mathf.Abs(oneEnd.y), maxY) * Mathf.Sign(oneEnd.y);
-            */
 
             float cushionDistance = 45f;
             
@@ -138,6 +131,14 @@ namespace _Project.CodeBase.Editor
                 CastedTarget.localHoldPosition = CastedTarget.transform.localPosition;
                 CastedTarget.localHoldRotation = CastedTarget.transform.localRotation;
                 Debug.Log($"Saved {CastedTarget.name} Hold Position: {CastedTarget.localHoldPosition}, " +
+                          $"Rotation: {CastedTarget.localHoldRotation}");
+            }
+
+            if (GUILayout.Button("Apply Local Weapon Orientation"))
+            {
+                CastedTarget.transform.localPosition = CastedTarget.localHoldPosition;
+                CastedTarget.transform.localRotation = CastedTarget.localHoldRotation;
+                Debug.Log($"Applying {CastedTarget.name} Hold Position: {CastedTarget.localHoldPosition}, " +
                           $"Rotation: {CastedTarget.localHoldRotation}");
             }
             

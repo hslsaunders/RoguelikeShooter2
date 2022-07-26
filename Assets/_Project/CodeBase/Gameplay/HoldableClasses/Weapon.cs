@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace _Project.CodeBase.Gameplay
+namespace _Project.CodeBase.Gameplay.HoldableClasses
 {
     public class Weapon : Holdable
     {
@@ -18,14 +18,6 @@ namespace _Project.CodeBase.Gameplay
 
         private const float SPREAD_DECAY_RATE = 2f;
         private const float PING_PONG_RATE = 1f;
-
-        private void OnValidate()
-        {
-            if (_fireDelay <= 0f)
-                _fireDelay = 0f;
-            
-            holdCurve.SetOriginTransforms();
-        }
 
         protected override void Update()
         {

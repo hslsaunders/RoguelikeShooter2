@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using _Project.CodeBase.Gameplay.EntityClasses;
 using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay.EntityClasses
+namespace _Project.CodeBase.Gameplay.HoldableClasses
 {
     public class HoldableController
     {
@@ -11,12 +12,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         protected Transform firePivotTransform;
 
         protected Vector2 _lerpedCloseHandPos;
-        
+
         private float _lerpedAngle;
         private float _aimAngleRatio;
         private float _localTargetAimAngle;
         private float _localLerpedAimAngle;
-        
+
         private const float HAND_ANGLE_LERP_SPEED = 640f;
         private const float HAND_LERP_SPEED = 20f;
 
@@ -31,7 +32,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         {
             this.entity = entity;
             this.holdable = holdable;
-
+            
             AssignData(IKTransforms, firePivotTransform, handTransform);
             
             holdable.onFire.AddListener(OnFire);
@@ -42,17 +43,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         {
             this.IKTransforms = IKTransforms;
             this.firePivotTransform = firePivotTransform;
-            
-            holdable.holdCurve.originTransform = firePivotTransform;
-            holdable.transform.parent = handTransform;
-            holdable.transform.localPosition = holdable.localHoldPosition;
-            holdable.transform.localRotation = holdable.localHoldRotation;
 
             CalculateAimAngle();
             _localLerpedAimAngle = _localTargetAimAngle;
             _lerpedCloseHandPos = CalculateTargetHandPos(); 
         }
-        
+
         public virtual void Update()
         {
             CalculateAimAngle();
@@ -100,10 +96,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 firePivotTransform.position, aimTargetMinDist);
 
             Vector2 aimSource = holdable.transform.position;
-                
-            float desiredWeaponAngle = Utils.DirectionToAngle(
+            
+            float aimSourceToTargetAngle = Utils.DirectionToAngle(
                 (aimTarget - aimSource).normalized
                 * entity.FlipMultiplier) * entity.FlipMultiplier;
+
+            float desiredWeaponAngle = aimSourceToTargetAngle;
                 
             _lerpedAngle = Mathf.MoveTowardsAngle(_lerpedAngle, desiredWeaponAngle,
                 HAND_ANGLE_LERP_SPEED * Time.deltaTime * (1f / holdable.weight));
