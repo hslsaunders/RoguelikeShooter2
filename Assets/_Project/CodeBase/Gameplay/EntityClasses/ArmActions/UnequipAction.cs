@@ -5,7 +5,7 @@ using UnityEngine;
 namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
 {
     [Serializable]
-    public class UnequipAction : ArmAction
+    public class UnequipAction : GrabAction
     {
         private Transform _targetHolster;
         private Dictionary<Transform, Holdable> _holsters;
@@ -32,30 +32,7 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
             holdable.beingEquippedOrUnequipped = true;
         }
 
-        public override void Tick()
-        {
-            base.Tick();
-            for (int i = 0; i < handOrientations.Count; i++)
-            {
-                TransformOrientation arm = handOrientations[i];
-                Transform targetTransform = _targetHolster;
-                Vector2 targetPos = targetTransform.position - arm.parent.position;
-                targetPos.x *= entity.FlipMultiplier;
-
-                arm.position = Vector2.MoveTowards(arm.position, targetPos, 5f * Time.deltaTime);
-
-                float distProgress = 1 - Vector2.Distance(arm.position, targetPos) /
-                                     Vector2.Distance(arm.startingOrientation.position, targetPos);
-
-                arm.rotation = arm.rotation.SetZ(entity.FlipMultiplier * Mathf.LerpAngle(arm.startingOrientation.rotation.z,
-                    targetTransform.transform.rotation.z, distProgress));
-
-                if (i == 0 && Vector2.Distance(arm.position, targetPos) < .001f)
-                {
-                    ActionEnd();
-                }
-            }
-        }
+        protected override Transform GetTargetTransform(int handIndex) => _targetHolster;
 
         public override void CancelAction()
         {
@@ -70,7 +47,7 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
             Debug.Log($"ending unequip action, grabbing {holdable.name} with " +
                       $"{armControllers.GetEnumeratedString(controller => controller.HandName)}");
             
-            base.ActionEnd(clearArmActions, removeActionFromStackAndReset);
+            base.ActionEnd(false, false);
             
             animationController.HolsterHoldableAndDisconnectArms(armControllers, holdable, _targetHolster, this);
             

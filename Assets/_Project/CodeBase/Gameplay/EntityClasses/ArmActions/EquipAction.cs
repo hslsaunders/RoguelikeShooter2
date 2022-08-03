@@ -1,0 +1,46 @@
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
+using Vector2 = UnityEngine.Vector2;
+
+namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
+{
+    [Serializable]
+    public class EquipAction : GrabAction
+    {
+        public override string ActionString() => $"Equip Action on {holdable.name}";
+        public override void StartAction()
+        {
+            base.StartAction();
+                
+            holdable.SetToBestHoldOrigin(armControllers, true);
+            Debug.Log($"starting equip action, grabbing {holdable.name} with " +
+                      $"{armControllers.GetEnumeratedString(controller => controller.HandName)}. running: {Running}");
+        }
+
+        protected override Transform GetTargetTransform(int handIndex) => holdable.holdPivots[handIndex];
+        public override void CancelAction()
+        {
+            base.CancelAction();
+            
+            holdable.SetToBestHoldOrigin();
+            holdable.beingEquippedOrUnequipped = false;
+        }
+
+        public override void ActionEnd(bool clearArmActions = true, bool removeActionFromStackAndReset = false)
+        {
+            base.ActionEnd(true, false);
+            Debug.Log($"ending {ActionString()} with " +
+                      $"{armControllers.GetEnumeratedString(controller => controller.HandName)}. running: {Running}");
+            Dictionary<Transform, Holdable> holsters = animationController.GetHolsters(holdable);
+            if (holsters.TryGetKey(holdable, out Transform holster))
+            {
+                holsters[holster] = null;
+            }
+            
+            animationController.SetArmsToHoldable(armControllers, holdable);
+            
+            RemoveActionFromStackAndReset();
+        }
+    }
+}
