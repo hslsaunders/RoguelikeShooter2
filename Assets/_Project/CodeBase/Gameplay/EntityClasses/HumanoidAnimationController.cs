@@ -46,6 +46,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         
         private float _lastAimAngle;
         private float _totalAngleChange;
+        private static readonly int Crouching = Animator.StringToHash("Crouching");
 
         protected override void OnValidate()
         {
@@ -177,13 +178,16 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             base.ManageAnimatorValues();
 
             Vector2 movementVelocity = entityController.MovementVelocity;
-            float velocityRatio = movementVelocity.magnitude * Mathf.Sign(movementVelocity.x) / EntityController.MOVE_SPEED;
+            float maxSpeed = EntityController.MOVE_SPEED *
+                             (entity.isCrouching ? EntityController.CROUCH_WALK_MULTIPLIER : 1f);
+            float velocityRatio = movementVelocity.magnitude * Mathf.Sign(movementVelocity.x) / maxSpeed;
             velocityRatio *= entity.FlipMultiplier;
 
             animator.SetFloat(HorizontalSpeed, velocityRatio, RUN_ANIM_SPEED,
                 Time.deltaTime);
 
             animator.SetFloat(AimRatio, entity.AimAngleRatio, AIM_ANIM_SPEED, Time.deltaTime);
+            animator.SetBool(Crouching, entity.isCrouching);
             //_animator.SetFloat(AimRatio, .5f, AIM_ANIM_SPEED, Time.deltaTime);
         }
 

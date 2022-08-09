@@ -48,6 +48,11 @@ namespace _Project.CodeBase.Player
             
             if (GameControls.EquipPrimaryHoldable.IsPressed)
                 entity.EquipHoldable(0);
+
+            if (GameControls.Interact.IsPressed)
+                entity.ActivateNearestInteractable();
+
+            entity.isCrouching = GameControls.Crouch.IsHeld;
             
             if (GameControls.FirePrimary.IsHeld)
             {

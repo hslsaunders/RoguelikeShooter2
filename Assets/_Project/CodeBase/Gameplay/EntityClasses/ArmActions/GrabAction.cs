@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿﻿using _Project.CodeBase.Gameplay.HoldableClasses;
+ using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
+ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
 {
     public class GrabAction : ArmAction
     {
@@ -18,14 +19,17 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
             }
         }
 
+        protected virtual void OnReachTarget() => ActionEnd();
+
         protected virtual void MoveHand(TransformOrientation arm, int handIndex)
         {
             Transform targetTransform = GetTargetTransform(handIndex);
             Vector2 targetPos = targetTransform.position - arm.parent.position;
             targetPos.x *= entity.FlipMultiplier;
-
+            
             arm.position = Vector2.MoveTowards(arm.position, targetPos, 5f * Time.deltaTime);
-                
+            arm.position = armControllers[handIndex].ClampVectorToArmLength(arm.position);
+            
             float distProgress = 1 - Vector2.Distance(arm.position, targetPos) /
                 Vector2.Distance(arm.startingOrientation.position, targetPos);
 
@@ -34,7 +38,7 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
 
             if (handIndex == 0 && Vector2.Distance(arm.position, targetPos) < .001f)
             {
-                ActionEnd();
+                OnReachTarget();
             }
         }
 

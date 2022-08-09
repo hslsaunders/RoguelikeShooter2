@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using _Project.CodeBase.Gameplay.HoldableClasses;
 using UnityEngine;
 
-namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
+namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
 {
     [Serializable]
     public class UnequipAction : GrabAction

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using _Project.CodeBase.Gameplay.EntityClasses.ArmActions;
 using _Project.CodeBase.Gameplay.HoldableClasses;
-using _Project.CodeBase.Gameplay.HoldableClasses.ArmActions;
+using _Project.CodeBase.Gameplay.WorldInteractableClasses;
 using UnityEngine;
 using UnityEngine.U2D.IK;
 
@@ -72,6 +73,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             base.OnValidate();
             TryGetComponent(out animator);
             TryGetComponent(out entityController);
+            
+            if (Application.isEditor)
+                _armControllers.Clear();
         }
 
         protected override void Start()
@@ -128,6 +132,11 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                     return;
             }
             AddNewArmAction(holdable.EquipAction);
+        }
+
+        public void ActivateInteractable(WorldInteractable interactable)
+        {
+            AddNewArmAction(new InteractableActivateAction(interactable));
         }
         
         public void UnequipHoldable(Holdable holdable)
@@ -474,6 +483,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 armController.Update();
             }
             
+            if (_disableAnimator) return;
             animator.Update(Time.deltaTime);
             IKManager2D.UpdateManager();
         }
@@ -552,16 +562,26 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             if (IKTrans.IKTarget != null && IKTrans.AnimationTarget != null)
             {
                 Vector2 raycastDir = Vector3.zero;
+                RaycastHit2D hit = default;
                 if (raycastSource != null)
+                {
                     raycastDir = IKTrans.AnimationTarget.position - raycastSource.position;
+
+                    hit = Physics2D.Raycast(raycastSource.position,
+                        raycastDir.normalized, raycastDir.magnitude + RAYCAST_EXTRA_DIST,
+                        Layers.WorldMask);
+                    
+                    Debug.DrawRay(raycastSource.position, raycastDir, Color.magenta);
+                }
                 
-                if (!_disableRaycastIKCorrection && raycastSource != null && Physics.Raycast(raycastSource.position, raycastDir.normalized, out RaycastHit hitinfo,
-                    raycastDir.magnitude + RAYCAST_EXTRA_DIST, Layers.WorldMask))
+                if (!_disableRaycastIKCorrection && raycastSource != null && hit.collider != null)
                 {
                     if (!IKTrans.DisableTranslation)
-                        IKTrans.IKTarget.position = hitinfo.point + hitinfo.normal * IK_PLACEMENT_OFFSET;
+                        IKTrans.IKTarget.position = hit.point + hit.normal * IK_PLACEMENT_OFFSET;
                     if (!IKTrans.DisableRotation)
-                        IKTrans.IKTarget.up = hitinfo.normal;
+                        IKTrans.IKTarget.up = hit.normal;
+                    
+                    Debug.DrawLine(raycastSource.position, IKTrans.IKTarget.position, Color.magenta);
                 }
                 else
                 {
@@ -573,6 +593,4 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             }
         }
     }
-
-    
 }

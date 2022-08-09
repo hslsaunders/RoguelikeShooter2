@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using _Project.CodeBase.Gameplay.HoldableClasses;
 using UnityEngine;
-using Vector2 = UnityEngine.Vector2;
 
-namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
+namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
 {
     [Serializable]
     public class EquipAction : GrabAction

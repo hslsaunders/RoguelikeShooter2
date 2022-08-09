@@ -11,5 +11,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         public Transform handTransform;
         public bool isPreferableArmRoot;
         [Range(0f, 3f)] public float armLength;
+        public bool testArmLength;
     }
 }

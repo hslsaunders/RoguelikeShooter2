@@ -904,6 +904,23 @@ namespace _Project.CodeBase
 
             return returnStr;
         }
+
+        public static T GetMinWithProp<T>(this List<T> list, Func<T, float> property)
+        {
+            float minProp = Mathf.Infinity;
+            T min = default;
+            foreach (T element in list)
+            {
+                float prop = property(element);
+                if (prop < minProp)
+                {
+                    minProp = prop;
+                    min = element;
+                }
+            }
+
+            return min;
+        }
     }
 
     public enum TextMod

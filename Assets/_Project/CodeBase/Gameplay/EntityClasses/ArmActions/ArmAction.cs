@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using _Project.CodeBase.Gameplay.EntityClasses;
+using _Project.CodeBase.Gameplay.HoldableClasses;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace _Project.CodeBase.Gameplay.HoldableClasses.ArmActions
+namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
 {
     public abstract class ArmAction
     {

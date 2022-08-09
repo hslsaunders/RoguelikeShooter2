@@ -1,24 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace _Project.CodeBase.Gameplay.WorldInteractableClasses
 {
     public abstract class WorldInteractable : MonoBehaviour
     {
         public static List<WorldInteractable> interactables = new List<WorldInteractable>();
+        public int handsRequired;
+        public Transform interactTransform;
+        public bool BeingInteractedWith { get; protected set; }
         public bool Toggled { get; private set; }
-        public Action OnActivate;
-        public Action OnDeactivate;
+        public UnityAction onActivate;
+        public UnityAction onDeactivate;
+        public UnityAction onFinishInteract;
 
-        private void Start()
+        protected virtual void Start()
         {
-            interactables.Add(this);
+            if (!interactables.Contains(this))
+                interactables.Add(this);
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
-            interactables.Remove(this);
+            if (interactables.Contains(this))
+                interactables.Remove(this);
         }
 
         public virtual void Interact() {}
@@ -26,13 +32,23 @@ namespace _Project.CodeBase.Gameplay.WorldInteractableClasses
         public virtual void Activate()
         {
             Toggled = true;
-            OnActivate.Invoke();
+            onActivate?.Invoke();
+            onFinishInteract?.Invoke();
         }
 
         public virtual void Deactivate()
         {
             Toggled = false;
-            OnDeactivate.Invoke();
+            onDeactivate?.Invoke();
+            onFinishInteract?.Invoke();
+        }
+
+        public virtual void FlipActivateState()
+        {
+            if (Toggled)
+                Deactivate();
+            else
+                Activate();
         }
     }
 }

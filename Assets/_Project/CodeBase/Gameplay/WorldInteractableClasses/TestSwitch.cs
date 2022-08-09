@@ -6,8 +6,9 @@ namespace _Project.CodeBase.Gameplay.WorldInteractableClasses
     {
         private SpriteRenderer _spriteRenderer;
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             _spriteRenderer = GetComponent<SpriteRenderer>();
         }
 

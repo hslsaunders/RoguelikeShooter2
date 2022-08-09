@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using _Project.CodeBase.Gameplay.HoldableClasses.ArmActions;
+using _Project.CodeBase.Gameplay.EntityClasses.ArmActions;
 using UnityEngine;
 using UnityEngine.Events;
 

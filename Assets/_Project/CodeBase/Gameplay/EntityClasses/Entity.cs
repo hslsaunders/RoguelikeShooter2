@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using _Project.CodeBase.Gameplay.HoldableClasses;
+using _Project.CodeBase.Gameplay.WorldInteractableClasses;
 using _Project.CodeBase.Navmesh;
 using UnityEditor;
 using UnityEngine;
@@ -38,6 +40,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         [HideInInspector] public Vector2 moveInput;
         [HideInInspector] public bool overrideTriggerDown;
         [HideInInspector] public bool overriddenTriggerDownValue;
+        [HideInInspector] public bool isCrouching;
 
         protected NavmeshManager navmeshManger;
         
@@ -113,6 +116,25 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private void OnDestroy()
         {
             Teams.RemoveTeamMember(this);
+        }
+
+        public WorldInteractable GetClosestInteractable()
+        {
+            return WorldInteractable.interactables.GetMinWithProp(interactable => 
+                Vector2.Distance(transform.position, interactable.transform.position));
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            WorldInteractable closest = GetClosestInteractable();
+            if (closest != null)
+                Gizmos.DrawLine(transform.position, closest.transform.position);
+        }
+
+        public void ActivateNearestInteractable()
+        {
+            WorldInteractable closest = GetClosestInteractable();
+            _animationController.ActivateInteractable(closest);
         }
 
         public bool TryGetNearestGroundTile(out NavmeshNode node)

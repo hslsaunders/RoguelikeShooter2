@@ -31,6 +31,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         public const float MOVE_SPEED = 7f;
         public const float WALK_SPEED_MULTIPLIER = .33f;
+        public const float CROUCH_WALK_MULTIPLIER = .5f;
         private const float RADIUS = .1f + .05f;
         public const float MAX_SLOPE_ANGLE = 50f;
         private const float GRAVITY = 15f;
@@ -107,8 +108,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
             //Debug.Log($"Gravity: {gravityVelocity}, Movement: {MovementVelocity}");            
             Velocity = MovementVelocity + gravityVelocity;
-            
-            
+
             _rb.velocity = Velocity;
         }
 
@@ -156,7 +156,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private void MovePlayerBasedOnInput()
         {
-            float speed = MOVE_SPEED;
+            float speed = MOVE_SPEED * (entity.isCrouching ? CROUCH_WALK_MULTIPLIER : 1f);
             
             //if (entity.IsWalking)
             //    speed *= WALK_SPEED_MULTIPLIER;

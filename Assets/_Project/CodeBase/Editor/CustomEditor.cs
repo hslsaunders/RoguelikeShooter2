@@ -49,16 +49,18 @@ namespace _Project.CodeBase.Editor
             targetPoint = Handles.PositionHandle(position: targetPoint, rotation: Quaternion.identity);
         }
 
-        protected void DrawAngleHandle(Vector2 source, float angle, float angleSliderLength, ref float sliderDist)
+        protected void DrawAngleHandle(Vector2 source, float angle, float angleSliderLength, ref float sliderDist, 
+            bool useLocalSpace = true)
         {
-            Vector2 lineTip = source + Utils.AngleToDirection(angle: angle) * sliderDist;
+            Vector2 angleDir = Utils.AngleToDirection(angle: angle);
+            Vector2 lineTip = source + angleDir * sliderDist;
 
             EditorGUI.BeginChangeCheck();
             Vector2 handlePos = Handles.Slider(position: lineTip,
-                direction: lineTip, size: angleSliderLength, capFunction: Handles.ArrowHandleCap, snap: 0f);
+                direction: useLocalSpace ? lineTip : angleDir, size: angleSliderLength, capFunction: Handles.ArrowHandleCap, snap: 0f);
 
             if (EditorGUI.EndChangeCheck())
-                sliderDist = handlePos.magnitude;
+                sliderDist = (handlePos - (useLocalSpace ? Vector2.zero : source)).magnitude;
 
             lineTip = source + Utils.AngleToDirection(angle: angle) * sliderDist;
             

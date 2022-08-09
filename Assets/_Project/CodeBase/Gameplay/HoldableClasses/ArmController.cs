@@ -1,6 +1,6 @@
 ﻿using System;
 using _Project.CodeBase.Gameplay.EntityClasses;
-using _Project.CodeBase.Gameplay.HoldableClasses.ArmActions;
+using _Project.CodeBase.Gameplay.EntityClasses.ArmActions;
 using UnityEngine;
 
 namespace _Project.CodeBase.Gameplay.HoldableClasses
@@ -152,6 +152,11 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses
             _aimAngleRatio = Mathf.Clamp01(aimAngle.Remap01(-holdable.lowestAimAngle, 
                 holdable.highestAimAngle));
         }
+
+        public Vector2 ClampVectorToArmLength(Vector2 pos) =>
+            Utils.ClampVectorInRadius(pos, Vector2.zero, armTransform.armLength);
+        public Vector2 ClampWorldPointInArmRange(Vector2 pos) =>
+            Utils.ClampVectorInRadius(pos, armTransform.armRoot.position, armTransform.armLength);
 
         protected virtual Vector2 GetFinalLocalHandPos() => _lerpedHandPos + _recoilCloseHandOffset;
         protected virtual float CalculateFinalPrimaryAngle() => _lerpedAngle + _recoilAngleOffset;

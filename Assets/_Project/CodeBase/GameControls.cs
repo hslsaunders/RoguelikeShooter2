@@ -12,6 +12,8 @@ namespace _Project.CodeBase
         public static readonly KeyBind Right = new KeyBind(KeyCode.D);
         public static readonly KeyBind Jump = new KeyBind(KeyCode.Space);
         public static readonly KeyBind Walk = new KeyBind(KeyCode.LeftControl);
+        public static readonly KeyBind Interact = new KeyBind(KeyCode.E);
+        public static readonly KeyBind Crouch = new KeyBind(KeyCode.LeftShift);
         
         //    Combat
         public static readonly KeyBind FirePrimary = new KeyBind(KeyCode.Mouse0);
