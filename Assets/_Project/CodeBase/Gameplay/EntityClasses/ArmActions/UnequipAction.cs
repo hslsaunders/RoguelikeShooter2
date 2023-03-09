@@ -20,7 +20,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
             Debug.Log($"starting unequip action, grabbing {holdable.name} with " +
                       $"{armControllers.GetEnumeratedString(controller => controller.HandName)}");
 
-            _holsters = animationController.GetHolsters(holdable);
+            _holsters = entity.GetHolsters(holdable);
             foreach ((Transform holster, Holdable holdableInHolster) in _holsters)
             {
                 if (holdableInHolster) continue;

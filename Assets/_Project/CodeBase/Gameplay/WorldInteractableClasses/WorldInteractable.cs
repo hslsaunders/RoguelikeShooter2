@@ -11,9 +11,9 @@ namespace _Project.CodeBase.Gameplay.WorldInteractableClasses
         public Transform interactTransform;
         public bool BeingInteractedWith { get; protected set; }
         public bool Toggled { get; private set; }
-        public UnityAction onActivate;
-        public UnityAction onDeactivate;
-        public UnityAction onFinishInteract;
+        public UnityEvent onActivate;
+        public UnityEvent onDeactivate;
+        public UnityEvent onFinishInteract;
 
         protected virtual void Start()
         {
@@ -33,14 +33,23 @@ namespace _Project.CodeBase.Gameplay.WorldInteractableClasses
         {
             Toggled = true;
             onActivate?.Invoke();
-            onFinishInteract?.Invoke();
         }
 
         public virtual void Deactivate()
         {
             Toggled = false;
             onDeactivate?.Invoke();
+        }
+
+        public virtual void FinishInteraction()
+        {
+            BeingInteractedWith = false;
             onFinishInteract?.Invoke();
+        }
+
+        public virtual void CancelInteraction()
+        {
+            BeingInteractedWith = false;
         }
 
         public virtual void FlipActivateState()

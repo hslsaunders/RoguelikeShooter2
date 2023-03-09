@@ -164,29 +164,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numHandsRequired: 1
-  numHandsCurrentlyAssigned: 0
+  beingEquippedOrUnequipped: 0
   holdPivots:
   - {fileID: 181017543176671898}
   - {fileID: 159928815652585602}
+  aimCalculationRoot: {fileID: 1566015156813329678}
   EquipAction:
     numHandsRequired: 1
+    hasBeenAttemptedToStart: 0
+    isQueued: 0
     OnFinishAction:
       m_PersistentCalls:
         m_Calls: []
     holdable: {fileID: 7471457379069360992}
     handOrientations: []
+    armControllers: []
   UnequipAction:
     numHandsRequired: 1
+    hasBeenAttemptedToStart: 0
+    isQueued: 0
     OnFinishAction:
       m_PersistentCalls:
         m_Calls: []
     holdable: {fileID: 7471457379069360992}
     handOrientations: []
+    armControllers: []
   highestAimAngle: 70
   lowestAimAngle: 70
   _fullAuto: 0
   _fireDelay: 0.125
-  weight: 1.5
+  weight: 1
   holdCurve:
     originTransform: {fileID: 0}
     start:
@@ -206,7 +213,6 @@ MonoBehaviour:
   maxSpread: 7.5
   spreadGrowthRate: 0.25
   teamId: 0
-  minDistToAimPivot: 0
 --- !u!1 &1108913955136735955
 GameObject:
   m_ObjectHideFlags: 0

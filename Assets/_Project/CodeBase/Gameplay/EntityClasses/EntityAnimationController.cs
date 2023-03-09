@@ -17,40 +17,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         protected EntityController entityController;
         protected IKManager2D IKManager2D;
         
-        //[SerializeField] private List<ArmTransform> arms = new List<ArmTransform>();
-        public List<ArmTransform> armTransforms = new List<ArmTransform>();
-        [SerializeField] private List<Transform> _oneHandedHolsterTransforms = new List<Transform>();
-        [SerializeField] private List<Transform> _multiHandedHolsterTransforms = new List<Transform>();
-        
-        [SerializeField] private List<ArmController> _armControllers = new List<ArmController>();
-        public Dictionary<Transform, Holdable> oneHandedHolsters = new Dictionary<Transform, Holdable>();
-        public Dictionary<Transform, Holdable> multiHandedHolsters = new Dictionary<Transform, Holdable>();
-
-        /*
-        private readonly Dictionary<Holdable, HoldableController> _holdableControllerDictionary =
-            new Dictionary<Holdable, HoldableController>();
-        private readonly Dictionary<ArmTransform, HoldableController> _armAssignmentDictionary = 
-            new Dictionary<ArmTransform, HoldableController>();
-        */
         public List<ArmAction> armActionStack = new List<ArmAction>();
         private int _numHands;
-        private int NumUsableArms => _armControllers.Sum(arm => arm.UseState == ArmUseState.Unusable ? 0 : 1);
-
-        private int NumArmsNotDoingActions => _armControllers.Sum(arm => 
-            arm.UseState != ArmUseState.DoingAction ? 1 : 0);
-        
-        private int NumFreeToUseArms => 
-            _armControllers.Sum(arm => 
-                arm.UseState == ArmUseState.None
-                || arm.UseState == ArmUseState.HoldingSupport
-                || arm.UseState == ArmUseState.SuperfluouslyHolding
-                    ? 1 : 0);
-
-        private int NumArmsDoingUnimportantThings =>
-            _armControllers.Sum(arm =>
-                arm.UseState == ArmUseState.None
-                || arm.UseState == ArmUseState.SuperfluouslyHolding
-                    ? 1 : 0);
 
         private int NumEquippedHoldables => entity.EquippedHoldables.Count;
 
@@ -73,52 +41,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             base.OnValidate();
             TryGetComponent(out animator);
             TryGetComponent(out entityController);
-            
-            if (Application.isEditor)
-                _armControllers.Clear();
-        }
-
-        protected override void Start()
-        {
-            base.Start();
-
-            foreach (ArmTransform armTransform in armTransforms)
-            {
-                _armControllers.Add(new ArmController(entity, armTransform));
-            }
-
-            foreach (Transform holster in _oneHandedHolsterTransforms)
-                oneHandedHolsters.Add(holster, null);
-            foreach (Transform holster in _multiHandedHolsterTransforms)
-                multiHandedHolsters.Add(holster, null);
-
-            foreach (Holdable holdable in entity.weaponInventory)
-                TryPutHoldableInHolster(holdable);
-            foreach (Holdable holdable in entity.holdableInventory)
-                TryPutHoldableInHolster(holdable);
-        }
-
-        private bool TryPutHoldableInHolster(Holdable holdable)
-        {
-            Dictionary<Transform, Holdable> holsters = GetHolsters(holdable);
-            foreach ((Transform holster, Holdable holsteredHoldable) in holsters)
-            {
-                if (holsteredHoldable == null)
-                {
-                    PlaceHoldableInHolster(holdable, holsters, holster);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public void PlaceHoldableInHolster(Holdable holdable, Dictionary<Transform, Holdable> holsters,
-            Transform holster)
-        {
-            holsters[holster] = holdable;
-            holdable.transform.position = holster.transform.position;
-            holdable.transform.rotation = holster.transform.rotation;
         }
 
         public void EquipHoldable(Holdable holdable)
@@ -168,13 +90,13 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
                 //CONSIDER USING THIS INSTEAD, PLUG THIS LIST INTO THE FIND ARMS FUNCTION
                 if (isUnequipAction)
-                    validArms = _armControllers.FindAll(controller =>
+                    validArms = entity.armControllers.FindAll(controller =>
                         controller.DoingUnimportantAction
                         || (controller.UseState != ArmUseState.HoldingRoot
                          || controller.UseState == ArmUseState.HoldingRoot
                          && controller.holdable == action.holdable));
                 else
-                    validArms = _armControllers.FindAll(controller => controller.IsInEasilyReassignedState);
+                    validArms = entity.armControllers.FindAll(controller => controller.IsInEasilyReassignedState);
 
                 Debug.Log($"{action.ActionString()} has valid controller for assignment " +
                           $"{validArms.GetEnumeratedString(controller => controller.HandName)}");
@@ -255,7 +177,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
             if (isUnequipAction)
             {
-                ArmController armHoldingHoldable = _armControllers.Find(controller =>
+                ArmController armHoldingHoldable = entity.armControllers.Find(controller =>
                     controller.UseState == ArmUseState.HoldingRoot &&
                     controller.holdable != null &&
                     controller.holdable == action.holdable);
@@ -264,9 +186,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             }
 
             int k = 0;
-            while (foundArms.Count < action.numHandsRequired && k < _armControllers.Count)
+            while (foundArms.Count < action.numHandsRequired && k < entity.armControllers.Count)
             {
-                ArmController controller = _armControllers[k];
+                ArmController controller = entity.armControllers[k];
                 /*
                 if (controller.Action != null)
                     Debug.Log($"hand: {controller.HandName}, isNotDoingImportantAction: {isNotDoingImportantAction}," +
@@ -310,7 +232,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
             if (removeOtherArmsAndActionsOnHoldable && action.holdable != null)
             {
-                List<ArmController> controllersHoldingButNotInAction = _armControllers.FindAll(controller =>
+                List<ArmController> controllersHoldingButNotInAction = entity.armControllers.FindAll(controller =>
                     (controller.UseState == ArmUseState.HoldingSupport
                      || controller.UseState == ArmUseState.SuperfluouslyHolding)
                     && controller.holdable == action.holdable);
@@ -374,11 +296,6 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             }
         }
 
-        public Dictionary<Transform, Holdable> GetHolsters(Holdable holdable)
-        {
-            return holdable.numHandsRequired == 1 ? oneHandedHolsters : multiHandedHolsters;
-        }
-        
         public void HolsterHoldableAndDisconnectArms(List<ArmController> arms, Holdable holdable, Transform holster, 
             ArmAction sourceAction = null)
         {
@@ -392,7 +309,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             holdable.transform.parent = holster;
             holdable.ClearArmControllers();
             holdable.beingEquippedOrUnequipped = false;
-            GetHolsters(holdable)[holster] = holdable;
+            entity.GetHolsters(holdable)[holster] = holdable;
             entity.EquippedHoldables.Remove(holdable);
             Debug.Log($"removing {holdable.name}");
 
@@ -408,7 +325,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         public void AssignMiscArmsToHoldables()
         {
-            List<ArmController> reassignableArms = _armControllers.FindAll(controller =>
+            List<ArmController> reassignableArms = entity.armControllers.FindAll(controller =>
                 controller.UseState.IsOfEnumType(ArmUseState.None, ArmUseState.SuperfluouslyHolding));
 
             reassignableArms.Sort(delegate(ArmController c1, ArmController c2)
@@ -478,85 +395,33 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                     action.Tick();
             }
             
-            foreach (ArmController armController in _armControllers)
+            foreach (ArmController armController in entity.armControllers)
             {
                 armController.Update();
             }
             
             if (_disableAnimator) return;
             animator.Update(Time.deltaTime);
+            
+            SyncLegs();
+            SyncIKToAnimation(entity.head, null);
+
             IKManager2D.UpdateManager();
         }
-/*
-        protected virtual void ReassignHoldableControllers()
+
+        protected void SyncLegs()
         {
-            int numFreeHands = arms.FindAll(armTransform =>
-                armTransform.armUseState != ArmUseState.Unusable ||
-                armTransform.armUseState != ArmUseState.DoingAction).Count;
-            
-            int numExtraHands = _numHands - numFreeHands;
-
-            int armIndex = 0;
-            foreach (Holdable holdable in entity.EquippedHoldables)
+            foreach (LimbTransform leg in entity.legTransforms)
             {
-                List<IKTransform> transforms = new List<IKTransform>();
-
-                int handsOnHoldable = holdable.numHandsRequired;
-                int superfluousHandsOnHoldable = 0;
-                if (holdable.HasSuperfluousHoldPivots && numExtraHands > 0)
-                {
-                    superfluousHandsOnHoldable = Mathf.Min(holdable.NumSuperfluousHoldPivots, numExtraHands);
-                }
-
-                handsOnHoldable += superfluousHandsOnHoldable;
-                numExtraHands -= superfluousHandsOnHoldable;
-
-                Transform firePivotTransform = arms[armIndex].firePivotTransform;
-                Transform handTransform = arms[armIndex].handTransform;
-
-                for (int i = armIndex; i < armIndex + handsOnHoldable; i++)
-                {
-                    ArmTransform arm = arms[i];
-                    if (arm.armUseState == ArmUseState.Unusable || arm.armUseState == ArmUseState.DoingAction)
-                    {
-                        armIndex++;
-                        continue;
-                    }
-                    if (i - armIndex < holdable.numHandsRequired)
-                        arm.armUseState = ArmUseState.HoldingWeapon;
-                    else
-                        arm.armUseState = ArmUseState.SuperfluouslyHolding;
-                    
-                    transforms.Add(arm.IKTransform);
-                }
-
-                if (_holdableControllerDictionary.TryGetValue(holdable, out HoldableController controller)) 
-                {
-                    controller.AssignData(transforms, firePivotTransform, handTransform);
-                }
-                else
-                {
-                    HoldableController newController;
-
-                    if (holdable is Weapon)
-                        newController = new WeaponController(entity, holdable, transforms,
-                            firePivotTransform, handTransform);
-                    else
-                        newController = new HoldableController(entity, holdable, transforms,
-                            firePivotTransform, handTransform);
-
-                    _holdableControllerDictionary.Add(holdable, newController);
-                }
-
-                armIndex += transforms.Count;
+                if (!leg.ignoreAnimation)
+                    SyncIKToAnimation(leg.IKTransform, leg.root);
             }
         }
-*/
-
+        
         protected virtual void ManageAnimatorValues()
         {
         }
-        
+
         protected void SyncIKToAnimation(IKTransform IKTrans, Transform raycastSource)
         {
             if (IKTrans.IKTarget != null && IKTrans.AnimationTarget != null)
@@ -573,7 +438,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                     
                     Debug.DrawRay(raycastSource.position, raycastDir, Color.magenta);
                 }
-                
+
                 if (!_disableRaycastIKCorrection && raycastSource != null && hit.collider != null)
                 {
                     if (!IKTrans.DisableTranslation)

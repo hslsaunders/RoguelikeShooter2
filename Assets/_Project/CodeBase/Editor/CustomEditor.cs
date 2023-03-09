@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Runtime.CompilerServices;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -49,22 +50,38 @@ namespace _Project.CodeBase.Editor
             targetPoint = Handles.PositionHandle(position: targetPoint, rotation: Quaternion.identity);
         }
 
-        protected void DrawAngleHandle(Vector2 source, float angle, float angleSliderLength, ref float sliderDist, 
+        protected bool DrawAngleHandle(Vector2 center, float angle, float angleSliderLength, ref float sliderDist, 
             bool useLocalSpace = true)
         {
             Vector2 angleDir = Utils.AngleToDirection(angle: angle);
-            Vector2 lineTip = source + angleDir * sliderDist;
+            Vector2 lineTip = center + angleDir * sliderDist;
 
             EditorGUI.BeginChangeCheck();
             Vector2 handlePos = Handles.Slider(position: lineTip,
                 direction: useLocalSpace ? lineTip : angleDir, size: angleSliderLength, capFunction: Handles.ArrowHandleCap, snap: 0f);
 
-            if (EditorGUI.EndChangeCheck())
-                sliderDist = (handlePos - (useLocalSpace ? Vector2.zero : source)).magnitude;
+            bool changedValue = EditorGUI.EndChangeCheck();
+            if (changedValue)
+                sliderDist = (handlePos - (useLocalSpace ? Vector2.zero : center)).magnitude;
 
-            lineTip = source + Utils.AngleToDirection(angle: angle) * sliderDist;
+            lineTip = center + Utils.AngleToDirection(angle: angle) * sliderDist;
             
-            Handles.DrawLine(p1: source, p2: lineTip);
+            Handles.DrawLine(p1: center, p2: lineTip);
+            
+            return changedValue;
+        }
+
+        protected bool DrawRadiusHandle(Vector2 center, ref float radius)
+        {
+            EditorGUI.BeginChangeCheck();
+            
+            float newRadius = Handles.RadiusHandle(Quaternion.identity, center, radius);
+
+            bool changedValue = EditorGUI.EndChangeCheck();
+            if (changedValue)
+                radius = newRadius;
+
+            return changedValue;
         }
         
         protected void AddObjectFieldNoFormat<K>(ref K obj, string label, params GUILayoutOption[] options) where K : Object

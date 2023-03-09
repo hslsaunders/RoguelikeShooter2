@@ -9,11 +9,12 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
     public class EntityController : EntityComponent
     {
         [SerializeField] private bool _disablePhysics;
+        [SerializeField] private CollisionChecker _stepMantleChecker;
         public bool IsGrounded { get; private set; }
         public Vector2 Velocity { get; private set; }
         public Vector2 gravityVelocity;
         public Vector2 MovementVelocity { get; private set; }
-        
+
         private Rigidbody2D _rb;
         private Collider2D _collider;
         private Vector3 _smoothVel;
@@ -21,11 +22,11 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private bool _wasGrounded;
         private bool _wasOnCeiling;
         private bool _isOnCeiling;
-        private bool _hasRecentlyJumped;
+        private bool _becomingAirborne;
         private bool _hasRecentlyHitCeiling;
         private bool _isJumpedQueued;
         private bool _canCoyoteJump;
-        private Coroutine _hasRecentlyJumpedRoutine;
+        private Coroutine _isBecomingAirborneRoutine;
         private Coroutine _jumpQueueRoutine;
         private Coroutine _coyoteTimeRoutine;
 
@@ -41,14 +42,14 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private const float SLOPE_STICK_FORCE = -5f;
         private const float HAS_RECENTLY_JUMPED_DURATION = .05f;
         private const float GROUND_CHECK_CUSHION = .0125f;
-        private const float GROUND_CHECK_HEIGHT_FROM_FEET = Entity.WIDTH / 4f;
-        private const float GROUND_CHECK_HEIGHT = Entity.WIDTH / 2f + GROUND_CHECK_CUSHION;
-        private const float GROUND_CHECK_WIDTH = Entity.WIDTH;
+        private float GroundCheckHeightFromFeet => entity.Width / 4f;
+        private float GroundCheckHeight => entity.Width / 2f + GROUND_CHECK_CUSHION;
+        private float GroundCheckWidth => entity.Width;
         private const float GROUND_CHECK_RADIUS = 0.1f;
 
         private const float CIRCLE_GROUND_CHECK_HEIGHT_FROM_GROUND = GROUND_CHECK_RADIUS;
         private const float CEILING_CHECK_RADIUS = RADIUS - .02f;
-        private const float CEILING_CHECK_HEIGHT = Entity.HEIGHT - CEILING_CHECK_RADIUS + .025f;
+        private float CeilingCheckHeight => entity.Height - CEILING_CHECK_RADIUS + .025f;
 
         protected override void Start()
         {
@@ -67,10 +68,10 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 return;
             }
             
-            MovePlayerBasedOnInput();
+            MoveEntityBasedOnInput();
 
-            int groundHits = CheckBoxInHeight(GROUND_CHECK_HEIGHT_FROM_FEET, 
-                GROUND_CHECK_WIDTH, GROUND_CHECK_HEIGHT);
+            int groundHits = CheckBoxInHeight(GroundCheckHeightFromFeet, 
+                GroundCheckWidth, GroundCheckHeight);
                 //CheckSphereInHeight(CIRCLE_GROUND_CHECK_HEIGHT_FROM_GROUND, GROUND_CHECK_RADIUS);
             if (groundHits > 0)
             {
@@ -83,19 +84,19 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
                 _groundNormal = normalSum / groundHits;
 
-                //Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + GROUND_CHECK_HEIGHT),
+                //Debug.DrawRay(new Vector3(transform.position.x, transform.position.y + GroundCheckWidth),
                 //    _groundNormal, Color.green);
             }
-
+            
             float angle = Vector2.Angle(_groundNormal, Vector2.up);
             IsGrounded = groundHits > 0 && angle < MAX_SLOPE_ANGLE;
             
-            if (!IsGrounded || _hasRecentlyJumped)
+            if (!IsGrounded || _becomingAirborne)
                 _groundNormal = Vector2.up;
             
             _isOnCeiling = 
-                CheckBoxInHeight(Entity.HEIGHT - GROUND_CHECK_HEIGHT_FROM_FEET, 
-                    GROUND_CHECK_WIDTH, GROUND_CHECK_HEIGHT) > 0;
+                CheckBoxInHeight(entity.Height - GroundCheckHeightFromFeet, 
+                    GroundCheckWidth, GroundCheckHeight) > 0;
 
             ManageJump();
         
@@ -114,7 +115,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private void ManageFalling()
         {
-            if (!_hasRecentlyJumped)
+            if (!_becomingAirborne)
             {
                 if (!IsGrounded && _wasGrounded)
                 {
@@ -154,7 +155,18 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             _jumpQueueRoutine = StartCoroutine(JumpQueueRoutine());
         }
 
-        private void MovePlayerBasedOnInput()
+        public void StepMantle()
+        {
+            if (_stepMantleChecker.IsHitting)
+            {
+                float heightDiff = Mathf.Abs(_stepMantleChecker.RaycastHit.point.y - transform.position.y);
+                gravityVelocity = new Vector2(0f, heightDiff);
+                StartGoingAirborne();
+                Debug.Log(heightDiff);
+            }
+        }
+
+        private void MoveEntityBasedOnInput()
         {
             float speed = MOVE_SPEED * (entity.isCrouching ? CROUCH_WALK_MULTIPLIER : 1f);
             
@@ -177,22 +189,27 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
                 _isJumpedQueued = false;
                 _canCoyoteJump = false;
-                
-                StopCoroutineIfNotNull(_jumpQueueRoutine);
-                StopCoroutineIfNotNull(_coyoteTimeRoutine);
-                StopCoroutineIfNotNull(_hasRecentlyJumpedRoutine);
 
-                _hasRecentlyJumpedRoutine = StartCoroutine(RecentlyJumpedRoutine());
+                StartGoingAirborne();
             }
         }
-    
-        private IEnumerator RecentlyJumpedRoutine()
-        {
-            _hasRecentlyJumped = true;
-            yield return new WaitForSeconds(HAS_RECENTLY_JUMPED_DURATION);
-            _hasRecentlyJumped = false;
 
-            _hasRecentlyJumpedRoutine = null;
+        private void StartGoingAirborne()
+        {
+            StopCoroutineIfNotNull(_jumpQueueRoutine);
+            StopCoroutineIfNotNull(_coyoteTimeRoutine);
+            StopCoroutineIfNotNull(_isBecomingAirborneRoutine);
+
+            _isBecomingAirborneRoutine = StartCoroutine(BecomingAirborneRoutine());
+        }
+    
+        private IEnumerator BecomingAirborneRoutine()
+        {
+            _becomingAirborne = true;
+            yield return new WaitForSeconds(HAS_RECENTLY_JUMPED_DURATION);
+            _becomingAirborne = false;
+
+            _isBecomingAirborneRoutine = null;
         }
     
         private IEnumerator JumpQueueRoutine()
@@ -216,7 +233,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private RaycastHit2D[] hits = new RaycastHit2D[4];
         private int CheckSphereInHeight(float height, float radius)
         {
-            bool aboveHalfOfHeight = height > Entity.HEIGHT / 2f;
+            bool aboveHalfOfHeight = height > entity.Height / 2f;
             float sideMultiplier = aboveHalfOfHeight ? -1f : 1f;
             float castDist = .1f;
             float cushion = .05f;
@@ -235,7 +252,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private const float CAST_DISTANCE = CAST_START_SHIFT + CUSHION;
         private int CheckBoxInHeight(float height, float castWidth, float castHeight)
         {
-            bool aboveHalfOfHeight = height > Entity.HEIGHT / 2f;
+            bool aboveHalfOfHeight = height > entity.Height / 2f;
             float sideMultiplier = aboveHalfOfHeight ? -1f : 1f;
 
             Vector2 start = transform.position + new Vector3(0f, height + CAST_START_SHIFT * sideMultiplier, 0f);
@@ -258,23 +275,23 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         private void OnDrawGizmos()
         {
             
-            //Handles.DrawWireCube(transform.position + new Vector3(0f, GROUND_CHECK_HEIGHT_FROM_FEET, 0f), 
-           //     new Vector3(GROUND_CHECK_WIDTH, GROUND_CHECK_HEIGHT));
+            //Handles.DrawWireCube(transform.position + new Vector3(0f, GroundCheckHeightFromFeet, 0f), 
+           //     new Vector3(GroundCheckWidth, GroundCheckWidth));
 
-           Vector2 start = transform.position + new Vector3(0f, GROUND_CHECK_HEIGHT_FROM_FEET + CAST_START_SHIFT, 0f);
+           Vector2 start = transform.position + new Vector3(0f, GroundCheckHeightFromFeet + CAST_START_SHIFT, 0f);
            float distance = CAST_DISTANCE + CUSHION/2f;
 
            Vector2 castVector = new Vector2(0f, -distance);
            
            Handles.color = Color.green;
            Handles.DrawWireCube(start, 
-               new Vector2(GROUND_CHECK_WIDTH, GROUND_CHECK_HEIGHT));
+               new Vector2(GroundCheckWidth, GroundCheckHeight));
            
            Handles.DrawLine(start, start + castVector);
            
            Handles.color = Color.red;
            Handles.DrawWireCube(start + castVector, 
-               new Vector2(GROUND_CHECK_WIDTH, GROUND_CHECK_HEIGHT));
+               new Vector2(GroundCheckWidth, GroundCheckHeight));
            
             /*
             Handles.DrawWireDisc(transform.position + new Vector3(0f, 
@@ -283,9 +300,9 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 GROUND_CHECK_RADIUS);
             */
            // Gizmos.color = Color.red;
-            //Gizmos.DrawWireSphere(transform.position + new Vector3(0f, GROUND_CHECK_HEIGHT, 0f),
+            //Gizmos.DrawWireSphere(transform.position + new Vector3(0f, GroundCheckWidth, 0f),
             //    GROUND_CHECK_RADIUS);
-           // Gizmos.DrawWireSphere(transform.position + new Vector3(0f, CEILING_CHECK_HEIGHT, 0f),
+           // Gizmos.DrawWireSphere(transform.position + new Vector3(0f, CeilingCheckHeight, 0f),
             //    CEILING_CHECK_RADIUS);
         }
 #endif

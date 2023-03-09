@@ -38,6 +38,8 @@ namespace _Project.CodeBase.Player
 
             if (GameControls.Jump.IsPressed)
                 entity.Controller.Jump();
+            //if (GameControls.StepMantle.IsPressed)
+            //    entity.Controller.StepMantle();
 
             if (GameControls.EquipWeaponOne.IsPressed)
                 entity.EquipWeapon(0);

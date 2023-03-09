@@ -5,9 +5,7 @@ namespace _Project.CodeBase.Gameplay.WorldInteractableClasses
     public class WorldSwitchInteractable : WorldInteractable
     {
         private Animator _animator;
-        private bool startedSwitch = false;
-        private static readonly int SwitchedOn = Animator.StringToHash("SwitchedOn");
-        private static readonly int SwitchInteract = Animator.StringToHash("SwitchInteract");
+        private bool needsToFinishAnimation = false;
 
         protected override void Start()
         {
@@ -18,30 +16,28 @@ namespace _Project.CodeBase.Gameplay.WorldInteractableClasses
         public override void Interact()
         {
             base.Interact();
-            if (startedSwitch || BeingInteractedWith) return;
+            if (BeingInteractedWith) return;
             
-            startedSwitch = true;
             BeingInteractedWith = true;
-            
-            _animator.SetBool(SwitchedOn, !Toggled);
-            _animator.SetTrigger(SwitchInteract);
-            Debug.Log("interacting");
+            _animator.enabled = true;
+            if (!needsToFinishAnimation)
+                _animator.Play(Toggled ? "DeactivateSwitch" : "ActivateSwitch", 0, 0f);
         }
 
-        public override void Activate()
+        public override void FinishInteraction()
         {
-            startedSwitch = false;
-            BeingInteractedWith = false;
-            
-            base.Activate();
+            base.FinishInteraction();
+
+            needsToFinishAnimation = false;
+            _animator.enabled = false;
         }
 
-        public override void Deactivate()
+        public override void CancelInteraction()
         {
-            startedSwitch = false;
-            BeingInteractedWith = false;
-            Debug.Log("deactivating");
-            base.Deactivate();
+            base.CancelInteraction();
+
+            needsToFinishAnimation = true;
+            _animator.enabled = false;
         }
     }
 }

@@ -41,7 +41,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.AI
                 }
             }
 
-            entity.AimTarget = _targetEntity.transform.position + new Vector3(0f, Entity.HEIGHT / 2f);
+            entity.AimTarget = _targetEntity.transform.position + new Vector3(0f, entity.Height / 2f);
 
             if (_path.Count > 0)
             {

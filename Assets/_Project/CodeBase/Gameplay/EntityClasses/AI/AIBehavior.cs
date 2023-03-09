@@ -32,8 +32,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.AI
                 float distToCenter = Vector2.Distance(centerOfEntity, visionSourcePos);
                 if (distToCenter > maxDistance) continue;
 
-                float stepSize = Entity.HEIGHT / (NUM_VISION_RAYCASTS - 1);
-                for (float yOffset = 0f; yOffset <= Entity.HEIGHT; yOffset += stepSize)
+                float stepSize = entity.Height / (NUM_VISION_RAYCASTS - 1);
+                for (float yOffset = 0f; yOffset <= entity.Height; yOffset += stepSize)
                 {
                     Vector2 checkPos = entity.transform.position + new Vector3(0f, yOffset, 0f);
                     Debug.DrawLine(visionSourcePos, checkPos);

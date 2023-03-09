@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using _Project.CodeBase.Gameplay.HoldableClasses;
 using _Project.CodeBase.Gameplay.WorldInteractableClasses;
 using _Project.CodeBase.Navmesh;
@@ -12,6 +11,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
     public class Entity : MonoBehaviour
     {
         [SerializeField] private GameObject _graphics;
+        [field: SerializeField] public float Height { get; private set; }
+        [field: SerializeField] public float Width { get; private set; }
         public int teamId;
         [field: SerializeField] public Transform AimOrigin { get; private set; }
         public bool IsWalking { get; private set; }
@@ -29,13 +30,23 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         public int FlipMultiplier => FacingLeft ? -1 : 1;
         public Vector2 HorizontalFlipMultiplier => new Vector2(FacingLeft ? -1 : 1, 1f);
         public float AimAngle { get; private set; }
-        public int MinNumHandsForEquippedHoldables => EquippedHoldables.Sum(holdable => holdable.numHandsRequired);
         public EntityController Controller { get; private set; }
-        private EntityAnimationController _animationController;
+        public EntityAnimationController AnimationController { get; private set; }
         public readonly List<Holdable> EquippedHoldables = new List<Holdable>();
         public List<Weapon> weaponInventory;
         public List<Holdable> holdableInventory;
         public Vector2 targetOffset;
+        
+        public List<ArmTransform> armTransforms = new List<ArmTransform>();
+        public List<LimbTransform> legTransforms = new List<LimbTransform>();
+        public IKTransform head;
+        [SerializeField] private List<Transform> _oneHandedHolsterTransforms = new List<Transform>();
+        [SerializeField] private List<Transform> _multiHandedHolsterTransforms = new List<Transform>();
+        
+        public List<ArmController> armControllers = new List<ArmController>();
+        public Dictionary<Transform, Holdable> oneHandedHolsters = new Dictionary<Transform, Holdable>();
+        public Dictionary<Transform, Holdable> multiHandedHolsters = new Dictionary<Transform, Holdable>();
+        
         [HideInInspector] public Transform targetTransform;
         [HideInInspector] public Vector2 moveInput;
         [HideInInspector] public bool overrideTriggerDown;
@@ -46,15 +57,13 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         
         private float _localTargetAimAngle;
         private float _localLerpedAimAngle;
-        
-        public const float HEIGHT = 1.7f;
-        public const float WIDTH = .2f;
 
         private void Awake()
         {
             if (TryGetComponent(out EntityController controller))
                 Controller = controller;
-            TryGetComponent(out _animationController);
+            if (TryGetComponent(out EntityAnimationController animationController))
+                AnimationController = animationController;
         }
 
         private void Start()
@@ -65,6 +74,27 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
                 InitializeStartingWeapons();
 
             navmeshManger = NavmeshManager.Get();
+            
+            foreach (ArmTransform armTransform in armTransforms)
+            {
+                armControllers.Add(new ArmController(this, armTransform));
+            }
+
+            foreach (Transform holster in _oneHandedHolsterTransforms)
+                oneHandedHolsters.Add(holster, null);
+            foreach (Transform holster in _multiHandedHolsterTransforms)
+                multiHandedHolsters.Add(holster, null);
+
+            foreach (Holdable holdable in this.weaponInventory)
+                TryPutHoldableInHolster(holdable);
+            foreach (Holdable holdable in this.holdableInventory)
+                TryPutHoldableInHolster(holdable);
+        }
+
+        private void OnValidate()
+        {
+            if (Application.isEditor)
+                armControllers.Clear();
         }
 
         private void InitializeStartingWeapons()
@@ -117,6 +147,35 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         {
             Teams.RemoveTeamMember(this);
         }
+        
+        private bool TryPutHoldableInHolster(Holdable holdable)
+        {
+            Dictionary<Transform, Holdable> holsters = GetHolsters(holdable);
+            foreach ((Transform holster, Holdable holsteredHoldable) in holsters)
+            {
+                if (holsteredHoldable == null)
+                {
+                    PlaceHoldableInHolster(holdable, holsters, holster);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        public Dictionary<Transform, Holdable> GetHolsters(Holdable holdable)
+        {
+            return holdable.numHandsRequired == 1 ? oneHandedHolsters : multiHandedHolsters;
+        }
+        
+        public void PlaceHoldableInHolster(Holdable holdable, Dictionary<Transform, Holdable> holsters,
+            Transform holster)
+        {
+            holsters[holster] = holdable;
+            holdable.transform.position = holster.transform.position;
+            holdable.transform.rotation = holster.transform.rotation;
+        }
+
 
         public WorldInteractable GetClosestInteractable()
         {
@@ -134,7 +193,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
         public void ActivateNearestInteractable()
         {
             WorldInteractable closest = GetClosestInteractable();
-            _animationController.ActivateInteractable(closest);
+            AnimationController.ActivateInteractable(closest);
         }
 
         public bool TryGetNearestGroundTile(out NavmeshNode node)
@@ -154,8 +213,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
             return false;
         }
 
-        public Vector2 GetCenterOfEntity => transform.position + (transform.up * HEIGHT / 2f);
-        public Bounds EntityBounds => new Bounds(GetCenterOfEntity, new Vector3(WIDTH, HEIGHT, 0f));
+        public Vector2 GetCenterOfEntity => transform.position + (transform.up * Height / 2f);
+        public Bounds EntityBounds => new Bounds(GetCenterOfEntity, new Vector3(Width, Height, 0f));
 
         private void OnDrawGizmos()
         {
@@ -192,7 +251,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses
 
         private void EquipHoldable(Holdable holdable)
         {
-            _animationController.EquipHoldable(holdable);
+            AnimationController.EquipHoldable(holdable);
             //holdable.gameObject.SetActive(true);
            // EquippedHoldables.Add(holdable);
         }

@@ -513,6 +513,21 @@ namespace _Project.CodeBase
             return index >= 0 && index < list.Count;
         }
 
+        public static Vector2 ClampVectorInRadiusRange(Vector2 vector, float innerRadius, float outerRadius)
+        {
+            float mag = vector.magnitude; 
+            if (mag < innerRadius)
+                vector = vector.SetMagnitude(innerRadius);
+            else if (mag > outerRadius)
+                vector = Vector2.ClampMagnitude(vector, outerRadius);
+            return vector;
+        }
+
+        public static Vector2 ClampVectorInRadiusRange(Vector2 vector, Vector2 center, float innerRadius,
+            float outerRadius) => ClampVectorInRadiusRange(vector - center, innerRadius, outerRadius) + center;
+
+        public static Vector2 SetMagnitude(this Vector2 v, float mag) => v.normalized * mag;
+        
         public static Vector2 ClampVectorOutsideRadius(Vector2 vector, Vector2 center, float radius)
         {
             float dist = Vector2.Distance(vector, center);

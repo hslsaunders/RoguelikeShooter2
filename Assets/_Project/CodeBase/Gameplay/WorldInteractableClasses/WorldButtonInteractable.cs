@@ -7,6 +7,7 @@
             base.Interact();
             Activate();
             Deactivate();
+            FinishInteraction();
         }
     }
 }

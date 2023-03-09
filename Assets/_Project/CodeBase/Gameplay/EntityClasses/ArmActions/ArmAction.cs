@@ -19,7 +19,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
         protected Entity entity;
 
         public abstract string ActionString();
-        private void PreActionInitialize()
+        protected virtual void PreActionInitialize()
         {
             handOrientations = new List<TransformOrientation>();
             armControllers = new List<ArmController>();
@@ -36,7 +36,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
             Vector2 startingHandPos = controller.LocalHandPos;
             
             handOrientations.Add(new TransformOrientation(startingHandPos, 
-                controller.armTransform.handTransform.rotation.eulerAngles * entity.FlipMultiplier, controller.armTransform.armRoot));
+                controller.armTransform.tip.rotation.eulerAngles * entity.FlipMultiplier, controller.armTransform.root));
             armControllers.Add(controller);
         }
 
@@ -88,7 +88,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
 
         protected void RemoveActionFromStackAndReset()
         {
-            Debug.Log($"Resetting {ActionString()} action");
+            Debug.Log($"Resetting and attempting reassign on {ActionString()}");
             PreActionInitialize();
             
             animationController.armActionStack.Remove(this);

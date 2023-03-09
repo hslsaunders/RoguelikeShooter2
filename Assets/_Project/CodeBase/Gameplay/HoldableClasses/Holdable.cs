@@ -14,6 +14,7 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses
         public int NumHandsCurrentlyAssigned => _armsCurrentlyAssigned.Count;
         private List<ArmController> _armsCurrentlyAssigned = new List<ArmController>();
         public Transform[] holdPivots;
+        public Transform aimCalculationRoot;
         [field: SerializeField] public EquipAction EquipAction;
         [field: SerializeField] public UnequipAction UnequipAction;
         [Range(0f, 90)] public float highestAimAngle;
@@ -86,13 +87,13 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses
                 if (arm.armTransform.isPreferableArmRoot)
                 {
                     Debug.Log($"assigning {name} root to best arm: {arm.HandName}");
-                    SetHoldOrigin(arm.armTransform.armRoot);
+                    SetHoldOrigin(arm.armTransform.root);
                     return;
                 }
             }
             
             if (possibleOrigins.Count > 0)
-                SetHoldOrigin(possibleOrigins[0].armTransform.armRoot);
+                SetHoldOrigin(possibleOrigins[0].armTransform.root);
             else
                 SetHoldOrigin(null);
         }

@@ -6,6 +6,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
     public class InteractableActivateAction : GrabAction
     {
         private WorldInteractable _interactable;
+        protected override bool CancelActionIfTargetOutsideRange => true;
 
         public override string ActionString() => $"Interact Action with {_interactable.name}";
 
@@ -19,11 +20,23 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
 
         protected override void OnReachTarget()
         {
-            //Debug.Log($"reached target, being interacted: {_interactable.BeingInteractedWith}");
             if (_interactable.BeingInteractedWith) return;
-
-            _interactable.onFinishInteract += () => ActionEnd();
+            
+            _interactable.onFinishInteract.AddListener(() => ActionEnd());
             _interactable.Interact();
+        }
+
+        public override void ActionEnd(bool clearArmActions = true, bool removeActionFromStackAndReset = true)
+        {
+            _interactable.onFinishInteract.RemoveListener(() => ActionEnd());
+            base.ActionEnd();
+        }
+
+        public override void CancelAction()
+        {
+            base.CancelAction();
+
+            _interactable.CancelInteraction();
         }
     }
 }

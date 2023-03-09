@@ -12,11 +12,10 @@ namespace _Project.CodeBase.Gameplay.HoldableClasses
         [Range(0f, 1f)] public float spreadGrowthRate;
         [HideInInspector] public int teamId;
         public float Spread => maxSpread * _spreadEffect; 
-        public float minDistToAimPivot;
         private float _spreadEffect = 0f;
         private float _fireAngle;
 
-        private const float SPREAD_DECAY_RATE = 2f;
+        private const float SPREAD_DECAY_RATE = 1.5f;
         private const float PING_PONG_RATE = 1f;
 
         protected override void Update()

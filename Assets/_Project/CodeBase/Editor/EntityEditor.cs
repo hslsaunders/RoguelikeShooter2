@@ -27,6 +27,20 @@ namespace _Project.CodeBase.Editor
             }
             else
                 _worldSpaceTargetPos = CastedTarget.AimTarget;
+            
+            foreach (ArmTransform armTransform in CastedTarget.armTransforms)
+            {
+                if (!armTransform.testArmLength) continue;
+                //Debug.Log($"{armTransform.armLength}");
+                if (DrawAngleHandle(armTransform.root.position, 0f, .1f, 
+                    ref armTransform.armLength, false))
+                    armTransform.IKTransform.IKTarget.position =
+                        armTransform.root.position + new Vector3(armTransform.armLength, 0f, 0f);
+
+                if (DrawRadiusHandle(armTransform.root.position, ref armTransform.minArmDist))
+                    armTransform.IKTransform.IKTarget.position =
+                        armTransform.root.position + new Vector3(armTransform.minArmDist, 0f, 0f);
+            }
         }
 
         protected override void DrawInspectorDebug()

@@ -18,7 +18,8 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
                       $"{armControllers.GetEnumeratedString(controller => controller.HandName)}. running: {Running}");
         }
 
-        protected override Transform GetTargetTransform(int handIndex) => holdable.holdPivots[handIndex];
+        protected override Transform GetTargetTransform(int handIndex) => holdable.holdPivots[
+            holdable.NumHandsCurrentlyAssigned == 0 ? handIndex : holdable.NumHandsCurrentlyAssigned];
         public override void CancelAction()
         {
             base.CancelAction();
@@ -32,7 +33,7 @@ namespace _Project.CodeBase.Gameplay.EntityClasses.ArmActions
             base.ActionEnd(true, false);
             Debug.Log($"ending {ActionString()} with " +
                       $"{armControllers.GetEnumeratedString(controller => controller.HandName)}. running: {Running}");
-            Dictionary<Transform, Holdable> holsters = animationController.GetHolsters(holdable);
+            Dictionary<Transform, Holdable> holsters = entity.GetHolsters(holdable);
             if (holsters.TryGetKey(holdable, out Transform holster))
             {
                 holsters[holster] = null;
